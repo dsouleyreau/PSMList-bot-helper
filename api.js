@@ -1,20 +1,20 @@
 /*
  *
- * PSMList API
+ * Discord bot - PSMList helper
  *
- * Authors : Arshellan and DodoDye
+ * Authors : DodoDye and Arshellan
  *
  */
 
 const express = require('express'),
       app = express(),
       mysql = require('mysql'),
-	  config = require('./config');
+      dbConfig = require('./secret').db;
 
 const pool = mysql.createPool({
     connectionLimit : 20,
 	port : 3306,
-	...config.db,
+	...dbConfig,
 });
 
 pool.getConnection( err => {

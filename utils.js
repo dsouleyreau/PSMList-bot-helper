@@ -53,6 +53,19 @@ function bulkApiRequest(...optionsList){
 	return Promise.all(promises).then((values) => values.flat() );
 }
 
+function allHelp(hasManageMessagesPermission) {
+	return 'Available commands:\n' +
+		' * ping\n' +
+		' * psm\n' +
+		' * ship\n' +
+		' * fort\n' +
+		' * crew\n' +
+		' * factions\n' +
+		' * extensions\n' +
+		' * rarities\n' +
+		(hasManageMessagesPermission ? ' - purge\n' : '');
+}
+
 const Discord = require('discord.js'),
 	config = require('./config.js'),
 	{ emojis } = config;
@@ -122,4 +135,5 @@ module.exports = {
 	apiRequest,
 	bulkApiRequest,
 	loadData,
+	allHelp,
 }

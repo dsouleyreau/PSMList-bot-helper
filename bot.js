@@ -19,7 +19,7 @@ const Discord = require( 'discord.js' ),
 	  }*/),
 	  prefix = '!',
 	  config = require('./config'),
-	  { apiRequest, loadData } = require('./utils.js');
+	  { apiRequest, loadData, allHelp } = require('./utils.js');
 
 // dynamic / async imports
 let   /*factions,*/ factionsEmbed,
@@ -79,17 +79,18 @@ bot.on("message", (message) => {
 	// put the first arg into lowercase because it is the command name
 	const command = args[1] && args[1].toLowerCase() === 'help' ? args.splice(1, 1)[0].toLowerCase() : args.shift().toLowerCase();
 
-	// defines if it is possible to manage messages
+	// defines if it is possible to manage messages (help and purge commands)
 	const clientHasManageMessagesPermission = message.member.hasPermission('MANAGE_MESSAGES') || message.member.hasPermission('ADMINISTRATOR');
 	const botHasManageMessagesPermission = message.guild.me.hasPermission('MANAGE_MESSAGES') || message.guild.me.hasPermission('ADMINISTRATOR');
 	const hasManageMessagesPermission = clientHasManageMessagesPermission || botHasManageMessagesPermission;
 
 	switch (command) {
 		case 'psm' :
-			if (args.length === 0) {
+			if (args.length !== 0) {
 				message.channel.send('More content is available at https://psmlist.com');
 			} else {
 				let input = '';
+				// get search type and remove it from args for future processing
 				const searchType = args.shift();
 				if (searchType === 'id') {
 					if (args.length > 1) {
@@ -110,26 +111,35 @@ bot.on("message", (message) => {
 				} else {
 					return message.channel.send(`Please indicate if you search by name or ID.\nType \`${prefix}help\` if needed.`);
 				}
+				// run all requests to API in parallel and process results all requests ended
 				Promise.all([
 					apiRequest(`${config.apiURI}/ship/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 				])
 					.then(values => {
+						// flatten the input array to check the amount and type of results
 						const data = values.flat();
 						if (data.length === 0) {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
-						} else if (data.length === 1 || (data.length === 2 && data[0].idExtension === data[1].idExtension && data[0].idCrew + 1 === data[1].idCrew)) {
+						}
+						// check if two results correspond to crews from the same card (with same ID, but database IDs follow each other)
+						else if (data.length === 1 || (data.length === 2 && data[0].idExtension === data[1].idExtension && data[0].idCrew + 1 === data[1].idCrew)) {
+							// create detailed embed
 							const embeds = itemEmbed(data);
 							message.channel.send(embeds[0]);
+							// add second embed if its a crew from the same card
 							if (embeds[1]) {
 								message.channel.send(embeds[1]);
 							}
 						} else {
+							// create one embed for each type of item (ship, fort, crew)
 							for (let value of values) {
+								// avoid creating an empty embed if there is no value for the item type
 								if (value.length === 0) {
 									continue;
 								}
+								// TODO: handling large results
 								try {
 									message.channel.send(itemsEmbed(value, input));
 								} catch (err) {
@@ -147,20 +157,6 @@ bot.on("message", (message) => {
 			break;
 
 		case 'help' :
-			function allHelp() {
-				message.channel.send('Available commands:\n' +
-					' * ping\n' +
-					' * psm\n' +
-					' * ship\n' +
-					' * fort\n' +
-					' * crew\n' +
-					' * factions\n' +
-					' * extensions\n' +
-					' * rarities\n' +
-					(hasManageMessagesPermission ? ' - purge\n' : '')
-				);
-			}
-
 			switch (args[0]) {
 				case 'ping':
 					message.channel.send('Test your ping for fun!');
@@ -199,13 +195,15 @@ bot.on("message", (message) => {
 					message.channel.send('List of rarities.');
 					break;
 				case 'purge':
-					if (hasManageMessagesPermission)
+					if (hasManageMessagesPermission) {
 						message.channel.send('Purge previous messages. Give it the number of messages to delete.');
-					else
-						allHelp();
+					}
+					else {
+						message.channel.send(allHelp(hasManageMessagesPermission));
+					}
 					break;
 				default:
-					allHelp();
+					message.channel.send(allHelp(hasManageMessagesPermission));
 			}
 			break;
 
@@ -308,7 +306,7 @@ bot.on("message", (message) => {
 	}
 });
 
-bot.login(config.BOT_TOKEN)
+bot.login(require('./secret.js').BOT_TOKEN)
 	.then( () => {
 		console.log('PSM Helper bot is available.');
 	})
