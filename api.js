@@ -47,11 +47,23 @@ require('./utils').loadData('extension').then( imports => {
 	extensionsRegex = '(' + extensionShorts.reduce((accu, ext, index) => accu + ext + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
 });
 
-app.get('/ship', (req, res) => {
+const api = express.Router();
+app.use('/api', api);
+
+const ship = express.Router();
+api.use('/ship', ship);
+
+const fort = express.Router();
+api.use('/fort', fort);
+
+const crew = express.Router();
+api.use('/crew', crew);
+
+ship.get('/', (req, res) => {
     res.json({error: 'Not implemented yet!'});
 });
 
-app.get('/ship/id/:ship', (req, res) => {
+ship.get('/id/:ship', (req, res) => {
 	const shipID = req.params.ship.substring(0, 10).toUpperCase();
 
 	const parts = shipID.match('(' + extensionsRegex + '((?:UL)?-?)(\\d+))|(.+)');
@@ -103,7 +115,7 @@ app.get('/ship/id/:ship', (req, res) => {
 	}
 });
 
-app.get('/ship/name/:ship', (req, res) => {
+ship.get('/name/:ship', (req, res) => {
 	const shipName = req.params.ship.substring(0, 30).toUpperCase();
 
 	if ( shipName.length === 0 || shipName.length !== req.params.ship.length) {
@@ -120,11 +132,11 @@ app.get('/ship/name/:ship', (req, res) => {
 	});
 });
 
-app.get('/fort', (req, res) => {
+fort.get('/', (req, res) => {
 	res.json({error: 'Not implemented yet!'});
 });
 
-app.get('/fort/id/:fort', (req, res) => {
+fort.get('/id/:fort', (req, res) => {
 	const fortID = req.params.fort.substring(0, 10).toUpperCase();
 
 	const parts = fortID.match('(' + extensionsRegex + '(.+))|(.+)');
@@ -159,7 +171,7 @@ app.get('/fort/id/:fort', (req, res) => {
 	}
 });
 
-app.get('/fort/name/:fort', (req, res) => {
+fort.get('/name/:fort', (req, res) => {
 	const fortName = req.params.fort.substring(0, 30).toUpperCase();
 
 	if ( fortName.length === 0 || fortName.length !== req.params.fort.length) {
@@ -176,11 +188,11 @@ app.get('/fort/name/:fort', (req, res) => {
 	});
 });
 
-app.get('/crew', (req, res) => {
+crew.get('/', (req, res) => {
 	res.json({error: 'Not implemented yet!'});
 });
 
-app.get('/crew/id/:crew', (req, res) => {
+crew.get('/id/:crew', (req, res) => {
 	const crewID = req.params.crew.substring(0, 10).toUpperCase();
 
 	const parts = crewID.match('(' + extensionsRegex + '(-?)(.+))|(.+)');
@@ -219,7 +231,7 @@ app.get('/crew/id/:crew', (req, res) => {
 	}
 });
 
-app.get('/crew/name/:crew', (req, res) => {
+crew.get('/name/:crew', (req, res) => {
 	const crewName = req.params.crew.substring(0, 30).toUpperCase();
 
 	if ( crewName.length === 0 || crewName.length !== req.params.crew.length) {
@@ -236,7 +248,7 @@ app.get('/crew/name/:crew', (req, res) => {
 	});
 });
 
-app.get('/faction', (req, res) => {
+api.get('/faction', (req, res) => {
     poolQuery("SELECT idFaction, nameImg FROM faction;")
     .then( results => {
 		res.json(results);
@@ -247,7 +259,7 @@ app.get('/faction', (req, res) => {
 	});
 });
 
-app.get('/extension', (req, res) => {
+api.get('/extension', (req, res) => {
     poolQuery("SELECT idExtension, name, short FROM extension;")
     .then( results => {
 		res.json(results);
@@ -258,7 +270,7 @@ app.get('/extension', (req, res) => {
 	});
 });
 
-app.get('/rarity', (req, res) => {
+api.get('/rarity', (req, res) => {
     poolQuery("SELECT idRarity, colorHex, nameLocale FROM rarity;")
     .then( results => {
 		res.json(results);
@@ -267,6 +279,10 @@ app.get('/rarity', (req, res) => {
 		console.log(err);
 		res.json({error: err});
 	});
+});
+
+api.get('*', (req, res) => {
+	res.json({});
 });
 
 app.listen(8080, () => {

@@ -1,5 +1,5 @@
 module.exports = {
-    "apiURI": "http://localhost:8080",
+    "apiURI": "http://localhost:8080/api",
     "emojis": {
         "pirate": "<:pirate:848670879068323850>",
         "viking": "<:viking:848670878748901387>",
