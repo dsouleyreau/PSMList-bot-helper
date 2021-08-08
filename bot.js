@@ -19,6 +19,7 @@ const Discord = require( 'discord.js' ),
 	  }*/),
 	  prefix = '!',
 	  config = require('./config'),
+	  sanitizer = require('sanitize')(),
 	  { apiRequest, loadData, allHelp } = require('./utils.js');
 
 // dynamic / async imports
@@ -72,12 +73,12 @@ bot.on("message", (message) => {
 	}
 
 	// remove the prefix from the message
-	const commandBody = message.content.slice(prefix.length);
+	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'string');
 	// split the message into pieces separated by a 'space'
 	const args = commandBody.split(' ');
 	// switch command and args if firts argument is 'help'
 	// put the first arg into lowercase because it is the command name
-	const command = args[1] && args[1].toLowerCase() === 'help' ? args.splice(1, 1)[0].toLowerCase() : args.shift().toLowerCase();
+	const command = sanitizer.value(args[1] && args[1].toLowerCase() === 'help' ? args.splice(1, 1)[0].toLowerCase() : args.shift().toLowerCase(), 'string');
 
 	// defines if it is possible to manage messages (help and purge commands)
 	const clientHasManageMessagesPermission = message.member.hasPermission('MANAGE_MESSAGES') || message.member.hasPermission('ADMINISTRATOR');
@@ -91,7 +92,7 @@ bot.on("message", (message) => {
 			} else {
 				let input = '';
 				// get search type and remove it from args for future processing
-				const searchType = args.shift();
+				const searchType = sanitizer.value(args.shift(), 'string');
 				if (searchType === 'id') {
 					if (args.length > 1) {
 						return message.channel.send('Please provide only one ID per research.');
@@ -101,7 +102,7 @@ bot.on("message", (message) => {
 						return message.channel.send('ID is limited to 10 characters.');
 					}
 				} else if (searchType === 'name' || searchType === 'text') {
-					input = args.join(' ');
+					input = sanitizer.value(args.join(' '), 'string');
 					if (input.length < 3) {
 						return message.channel.send('Name needs at least 3 characters.');
 					}
@@ -157,7 +158,8 @@ bot.on("message", (message) => {
 			break;
 
 		case 'help' :
-			switch (args[0]) {
+			const help = sanitizer.value(args[0], 'string');
+			switch (help) {
 				case 'ping':
 					message.channel.send('Test your ping for fun!');
 					break;
@@ -211,17 +213,17 @@ bot.on("message", (message) => {
 		case 'crew':
 		case 'fort':
 			let input = '';
-			const searchType = args.shift();
+			const searchType = sanitizer.value(args.shift(), 'string');
 			if (searchType === 'id') {
 				if (args.length > 1) {
 					return message.channel.send('Please provide only one ID per research.');
 				}
-				input = args[0];
+				input = sanitizer.value(args[0], 'string');
 				if (input.length > 10) {
 					return message.channel.send('ID is limited to 10 characters.');
 				}
 			} else if (searchType === 'name' || searchType === 'text') {
-				input = args.join(' ');
+				input = sanitizer.value(args.join(' '), 'string');
 				if (input.length < 3) {
 					return message.channel.send('Name needs at least 3 characters.');
 				}
@@ -280,10 +282,11 @@ bot.on("message", (message) => {
 				return message.channel.send('You don\'t have permissions for that!');
 			}
 
+			let number = 0;
 			try {
-				args[0] = Number.parseInt(args[0]);
+				number = sanitizer.value(Number.parseInt(args[0]), 'int');
 			} catch (e) {
-				args[0] = 0;
+				return message.channel.send('Indicate a valid number, between 2 and 10.');
 			}
 
 			// check value type
@@ -291,6 +294,7 @@ bot.on("message", (message) => {
 				return message.channel.send('Indicate a valid number, between 2 and 10.');
 			}
 
+			// delete the command itself
 			message.delete();
 
 			message.channel.bulkDelete(args[0], true)

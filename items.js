@@ -76,8 +76,8 @@ module.exports = (factions, extensions, rarities) => {
                                 emojis.speed + '\ ' + item.baseMove + '\ \u200b\ \u200b\ \u200b' +
                                 emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + '\ \u200b\ \u200b' + emojis[cannon], ''),
                         },
-                        {name: 'Aptitude', value: item.defaultAptitude, inline: true},
-                        {name: 'Lore', value: item.defaultLore, inline: true},
+                        {name: 'Ability', value: item.defaultAptitude ?? '-', inline: true},
+                        {name: 'Flavor Text', value: item.defaultLore ?? '-', inline: true},
                     )
                 } else if (itemType === 'crew') {
                     itemEmbed.addFields(
@@ -85,8 +85,8 @@ module.exports = (factions, extensions, rarities) => {
                             name: emojis[extensionObject.short] + '\ \u200b\ \u200b' + extensionObject.name + '\ \u200b\ \u200b\ \u200b\ \u200b' + emojis[factionName] + '\ \u200b\ \u200b' + factionName.charAt(0).toUpperCase() + factionName.slice(1),
                             value: item.points + ' points'
                         },
-                        {name: 'Aptitude', value: item.defaultAptitude ?? '-', inline: true},
-                        {name: 'Lore', value: item.defaultLore ?? '-', inline: true},
+                        {name: 'Ability', value: item.defaultAptitude ?? '-', inline: true},
+                        {name: 'Flavor Text', value: item.defaultLore ?? '-', inline: true},
                     )
                 } else {
                     itemEmbed.addFields(
@@ -95,8 +95,8 @@ module.exports = (factions, extensions, rarities) => {
                             value: item.points + ' points' + '\ \u200b\ \u200b\ \u200b' +
                                 emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + '\ \u200b\ \u200b' + emojis[cannon], ''),
                         },
-                        {name: 'Ability', value: item.defaultAptitude, inline: true},
-                        {name: 'Lore', value: item.defaultLore, inline: true},
+                        {name: 'Ability', value: item.defaultAptitude ?? '-', inline: true},
+                        {name: 'Flavor Text', value: item.defaultLore ?? '-', inline: true},
                     )
                 }
                 embeds.push( itemEmbed );
