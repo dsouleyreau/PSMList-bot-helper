@@ -40,11 +40,17 @@ function poolQuery(query, args){
 	});
 }
 
-let extensions, extensionShorts, extensionsRegex;
+let extensions, extensionsRegex;
 require('./utils').loadData('extension').then( imports => {
 	extensions = imports.extensions;
-    extensionShorts = Object.values(extensions).map((ext) => ext.short);
-	extensionsRegex = '(' + extensionShorts.reduce((accu, ext, index) => accu + ext + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
+    const extensionShorts = [];
+    Object.values(extensions).forEach((extension) => {
+    	extensionShorts.push(extension.short)
+		if (extension.shortcommunity) {
+			extensionShorts.push(extension.shortcommunity)
+		}
+	});
+	extensionsRegex = '(' + extensionShorts.reduce((accu, extension, index) => accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
 });
 
 const api = express.Router();
@@ -66,7 +72,7 @@ ship.get('/', (req, res) => {
 ship.get('/id/:ship', (req, res) => {
 	const shipID = req.params.ship.substring(0, 10).toUpperCase();
 
-	const parts = shipID.match('(' + extensionsRegex + '((?:UL)?-?)(\\d+))|(.+)');
+	const parts = shipID.match('(' + extensionsRegex + '([A-Z]{2}-)?(\\d+))|(.+)');
 
 	if ( parts[0].length === 0 || parts[0].length !== req.params.ship.length) {
 		return res.json([]);
@@ -77,22 +83,14 @@ ship.get('/id/:ship', (req, res) => {
 			  extensionShort = parts[2];
 		const particle = parts[3];
 
-		if (particle !== '') {
-			if ( particle === '-' && ['SS', 'PS', 'ES'].indexOf(extensionShort) > -1 ) {
-				numID = extensionShort + '-' + parts[4];
-				extensionShort = 'SM';
-			}
-			else if (particle.startsWith('UL')) {
-				if (particle.endsWith('-')) {
-					numID = 'UL-' + parts[4];
-				}
-				else {
-					numID = 'UL' + parts[4];
-				}
-			}
+		if (extensionShort === 'PSM') {
+			extensionShort = 'SM';
+		}
+		if (particle && particle !== '') {
+			numID = particle + numID;
 		}
 
-		poolQuery("SELECT * FROM ship WHERE isFort = 0 AND numId REGEXP ? AND idExtension = (SELECT idExtension FROM extension WHERE short = ?);", ['^0*' + numID + 'a?$', extensionShort])
+		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + 'a?$', extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -104,7 +102,7 @@ ship.get('/id/:ship', (req, res) => {
 	}
 	else {
 		const numID = parts[5];
-		poolQuery("SELECT * FROM ship WHERE isFort = 0 AND numId REGEXP ?;", '^0*' + numID + 'a?$')
+		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ?;", '^0*' + numID + 'a?$')
 		.then( results => {
 			res.json(results);
 		})
@@ -122,7 +120,7 @@ ship.get('/name/:ship', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE isFort = 0 AND name REGEXP ?;", shipName)
+	poolQuery("SELECT * FROM ship WHERE isfort = 0 AND name REGEXP ?;", shipName)
 	.then( results => {
 		res.json(results);
 	})
@@ -149,7 +147,7 @@ fort.get('/id/:fort', (req, res) => {
 		const numID = parts[3],
 			extensionShort = parts[2];
 
-		poolQuery("SELECT * FROM ship WHERE isFort = 1 AND numId REGEXP ? AND idExtension = (SELECT idExtension FROM extension WHERE short = ?);", ['^0*' + numID + '$', extensionShort])
+		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + '$', extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -160,7 +158,7 @@ fort.get('/id/:fort', (req, res) => {
 	}
 	else {
 		const numID = parts[5];
-		poolQuery("SELECT * FROM ship WHERE isFort = 1 AND numId REGEXP ?;", '^0*' + numID + '.?$')
+		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numId REGEXP ?;", '^0*' + numID + '.?$')
 		.then( results => {
 			res.json(results);
 		})
@@ -178,7 +176,7 @@ fort.get('/name/:fort', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE isFort = 1 AND name REGEXP ?;", fortName)
+	poolQuery("SELECT * FROM ship WHERE isfort = 1 AND name REGEXP ?;", fortName)
 	.then( results => {
 		res.json(results);
 	})
@@ -195,7 +193,7 @@ crew.get('/', (req, res) => {
 crew.get('/id/:crew', (req, res) => {
 	const crewID = req.params.crew.substring(0, 10).toUpperCase();
 
-	const parts = crewID.match('(' + extensionsRegex + '(-?)(.+))|(.+)');
+	const parts = crewID.match('(' + extensionsRegex + '([A-Z]{2}-)?(.+))|(.+)');
 
 	if ( parts[0].length === 0 || parts[0].length !== req.params.crew.length) {
 		return res.json([]);
@@ -205,11 +203,11 @@ crew.get('/id/:crew', (req, res) => {
 		let numID = parts[4],
 			extensionShort = parts[2];
 
-		if (parts[3] === '-' && extensionShort.test('(SS|PS|ES|GS|PP)')) {
+		if (extensionShort === 'PSM' || (parts[3] === '-' && extensionShort.match('(SS|PS|ES|GS|PP)'))) {
 			extensionShort = 'SM';
 		}
 
-		poolQuery("SELECT * FROM crew WHERE numId REGEXP ? AND idExtension = (SELECT idExtension FROM extension WHERE short = ?);", ['^0*' + numID + '[a-zA-Z]?$', extensionShort])
+		poolQuery("SELECT * FROM crew WHERE numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + '[a-zA-Z]?$', extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -220,7 +218,7 @@ crew.get('/id/:crew', (req, res) => {
 	}
 	else {
 		const numID = parts[5];
-		poolQuery("SELECT * FROM crew WHERE numId REGEXP ?;", '^0*' + numID + '[a-zA-Z]?$')
+		poolQuery("SELECT * FROM crew WHERE numid REGEXP ?;", '0*' + numID + '[a-zA-Z]?$')
 		.then( results => {
 			res.json(results);
 		})
@@ -249,7 +247,7 @@ crew.get('/name/:crew', (req, res) => {
 });
 
 api.get('/faction', (req, res) => {
-    poolQuery("SELECT idFaction, nameImg FROM faction;")
+    poolQuery("SELECT id, nameimg, defaultname FROM faction;")
     .then( results => {
 		res.json(results);
 	})
@@ -260,7 +258,7 @@ api.get('/faction', (req, res) => {
 });
 
 api.get('/extension', (req, res) => {
-    poolQuery("SELECT idExtension, name, short FROM extension;")
+    poolQuery("SELECT id, name, short, shortcommunity FROM extension;")
     .then( results => {
 		res.json(results);
 	})
@@ -271,7 +269,7 @@ api.get('/extension', (req, res) => {
 });
 
 api.get('/rarity', (req, res) => {
-    poolQuery("SELECT idRarity, colorHex, nameLocale FROM rarity;")
+    poolQuery("SELECT id, colorhex, namelocale, defaultname FROM rarity;")
     .then( results => {
 		res.json(results);
 	})

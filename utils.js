@@ -87,37 +87,36 @@ async function loadData(type) {
 	data = await apiRequest(`${config.apiURI}/${type}`); // expected to throw error and quit process if api is unreachable
 	switch (type) {
 		case 'faction':
-			for (let { idFaction, nameImg } of data) {
-				if (idFaction && nameImg) {
-					exports.factions[idFaction] = nameImg;
+			for (let { id, nameimg, defaultname } of data) {
+				if (id && nameimg && defaultname) {
+					exports.factions[id] = { nameimg, name: defaultname };
 				}
 			}
 			break;
 		case 'extension':
-			for (let { idExtension, name, short } of data) {
-				if (idExtension && name && short) {
-					exports.extensions[idExtension] = {name, short};
+			for (let { id, name, short, shortcommunity } of data) {
+				if (id && name && short) {
+					exports.extensions[id] = {name, short, shortcommunity};
 				}
 			}
 			break;
 		case 'rarity':
-			for (let { idRarity, colorHex, nameLocale } of data) {
-				if (idRarity && nameLocale && colorHex){
-					const nameSplit = nameLocale.match(/^rarity([A-Z][a-z]+)(.*)/);
-					exports.rarities[idRarity] = { color: '#' + colorHex, colorName: nameSplit[1], name: nameSplit[2]};
+			for (let { id, colorhex, defaultname } of data) {
+				if (id && defaultname && colorhex){
+					exports.rarities[id] = { color: '#' + colorhex, name: defaultname};
 				}
 			}
 			break;
 	}
 	switch (type) {
 		case 'faction':
-			exports.factionsString = Object.values(exports.factions).reduce((output, faction) => output + config.emojis[faction] + "\ \u200b\ \u200b" + faction + "\n", "")
+			exports.factionsString = Object.values(exports.factions).reduce((output, faction) => output + config.emojis[faction.nameimg] + "\ \u200b\ \u200b" + faction.name + "\n", "");
 			break;
 		case 'extension':
-			exports.extensionsString = Object.values(exports.extensions).reduce((output, extension) => output + emojis[extension.short] + "\ \u200b\ \u200b" + extension.name + "\n", "")
+			exports.extensionsString = Object.values(exports.extensions).reduce((output, extension) => output + emojis[extension.short] + "\ \u200b\ \u200b" + extension.name + " - " + extension.short + "\n", "");
 			break;
 		case 'rarity':
-			exports.raritiesString = Object.values(exports.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name} \n`, "")
+			exports.raritiesString = Object.values(exports.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name} \n`, "");
 			break;
 	}
 

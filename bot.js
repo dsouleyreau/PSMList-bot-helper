@@ -26,7 +26,7 @@ const Discord = require( 'discord.js' ),
 let   /*factions,*/ factionsEmbed,
 	  /*extensions,*/ extensionsEmbed,
 	  /*rarities,*/ raritiesEmbed,
-	  itemEmbed, itemsEmbed
+	  itemEmbed, itemsEmbed;
 
 Promise.all([
 	// parallel fetching of factions, extensions and rarity instead of serial fetching
@@ -87,7 +87,7 @@ bot.on("message", (message) => {
 
 	switch (command) {
 		case 'psm' :
-			if (args.length !== 0) {
+			if (args.length === 0) {
 				message.channel.send('More content is available at https://psmlist.com');
 			} else {
 				let input = '';
@@ -125,7 +125,7 @@ bot.on("message", (message) => {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 						}
 						// check if two results correspond to crews from the same card (with same ID, but database IDs follow each other)
-						else if (data.length === 1 || (data.length === 2 && data[0].idExtension === data[1].idExtension && data[0].idCrew + 1 === data[1].idCrew)) {
+						else if (data.length === 1 || (data.length === 2 && data[0].idextension === data[1].idextension && data[0].idcrew + 1 === data[1].idcrew)) {
 							// create detailed embed
 							const embeds = itemEmbed(data);
 							message.channel.send(embeds[0]);
@@ -140,13 +140,11 @@ bot.on("message", (message) => {
 								if (value.length === 0) {
 									continue;
 								}
-								// TODO: handling large results
-								try {
-									message.channel.send(itemsEmbed(value, input));
-								} catch (err) {
-									console.log(err);
+								message.channel.send(itemsEmbed(value, input)).catch( err => {
+									// console.log(err);
 									console.log('Too many results with the research: ' + input);
-								}
+									message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+								});
 							}
 						}
 					})
@@ -238,18 +236,18 @@ bot.on("message", (message) => {
 				.then( data => {
 					if (data.length === 0) {
 						message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
-					} else if (data.length === 1 || (data.length === 2 && data[0].idExtension === data[1].idExtension && data[0].idCrew + 1 === data[1].idCrew)) {
+					} else if (data.length === 1 || (data.length === 2 && data[0].idextension === data[1].idextension && data[0].idcrew + 1 === data[1].idcrew)) {
 						const embeds = itemEmbed(data);
 						message.channel.send(embeds[0]);
 						if (embeds[1]) {
 							message.channel.send(embeds[1]);
 						}
 					} else {
-						try {
-							message.channel.send(itemsEmbed(data, input));
-						} catch (e) {
+						message.channel.send(itemsEmbed(data, input)).catch( err => {
+							// console.log(err);
 							console.log('Too many results with the research: ' + input);
-						}
+							message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+						});
 					}
 				})
 				.catch(err => {
