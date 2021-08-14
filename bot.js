@@ -164,9 +164,9 @@ bot.on("message", (message) => {
 					break;
 				case 'psm':
 					helpMessage =
-						`Type \`${prefix}psm id <id>\` or \`${prefix}psm name <name>\` to find \n` +
-						`Ex: \`${prefix}psm id oe001\`\n` +
-						`Type \`${prefix}psm\` to be redirected to the website.`
+						`Type \`${prefix}psm\` to be redirected to the website\n` +
+						`\`${prefix}psm id <id>\` or \`${prefix}psm name <name>\` to research in PSMList database\n` +
+						`Ex: \`${prefix}psm id oe001\``
 					;
 					break;
 				case 'ship':
@@ -186,7 +186,7 @@ bot.on("message", (message) => {
 				case 'crew':
 					helpMessage =
 						'Shows information about a crew based on its name or ID.\n' +
-						`\`${prefix}psm id <id>\` or \`${prefix}psm name <name>\`\n` +
+						`\`${prefix}crew id <id>\` or \`${prefix}crew name <name>\`\n` +
 						`Ex: \`${prefix}crew ca063\``
 					;
 					break;
