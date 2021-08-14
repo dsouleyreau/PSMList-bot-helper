@@ -49,8 +49,10 @@ require('./utils').loadData('extension').then( imports => {
 		if (extension.shortcommunity) {
 			extensionShorts.push(extension.shortcommunity)
 		}
+		extensionShorts.push(extension.shortwizkids.toUpperCase())
 	});
 	extensionsRegex = '(' + extensionShorts.reduce((accu, extension, index) => accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
+	// console.log(extensionsRegex);
 });
 
 const api = express.Router();
@@ -73,6 +75,7 @@ ship.get('/id/:ship', (req, res) => {
 	const shipID = req.params.ship.substring(0, 10).toUpperCase();
 
 	const parts = shipID.match('(' + extensionsRegex + '([A-Z]{2}-)?(\\d+))|(.+)');
+	console.log(parts);
 
 	if ( parts[0].length === 0 || parts[0].length !== req.params.ship.length) {
 		return res.json([]);
@@ -83,14 +86,11 @@ ship.get('/id/:ship', (req, res) => {
 			  extensionShort = parts[2];
 		const particle = parts[3];
 
-		if (extensionShort === 'PSM') {
-			extensionShort = 'SM';
-		}
 		if (particle && particle !== '') {
 			numID = particle + numID;
 		}
 
-		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + 'a?$', extensionShort])
+		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -147,7 +147,7 @@ fort.get('/id/:fort', (req, res) => {
 		const numID = parts[3],
 			extensionShort = parts[2];
 
-		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + '$', extensionShort])
+		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + '$', extensionShort, extensionShort, extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -203,11 +203,11 @@ crew.get('/id/:crew', (req, res) => {
 		let numID = parts[4],
 			extensionShort = parts[2];
 
-		if (extensionShort === 'PSM' || (parts[3] === '-' && extensionShort.match('(SS|PS|ES|GS|PP)'))) {
+		if (parts[3] === '-' && extensionShort.match('(SS|PS|ES|GS|PP)')) {
 			extensionShort = 'SM';
 		}
 
-		poolQuery("SELECT * FROM crew WHERE numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ?);", ['^0*' + numID + '[a-zA-Z]?$', extensionShort])
+		poolQuery("SELECT * FROM crew WHERE numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + '[a-zA-Z]?$', extensionShort, extensionShort, extensionShort])
 		.then( results => {
 			res.json(results);
 		})
@@ -258,7 +258,7 @@ api.get('/faction', (req, res) => {
 });
 
 api.get('/extension', (req, res) => {
-    poolQuery("SELECT id, name, short, shortcommunity FROM extension;")
+    poolQuery("SELECT id, name, short, shortcommunity, shortwizkids FROM extension;")
     .then( results => {
 		res.json(results);
 	})

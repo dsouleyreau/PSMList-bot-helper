@@ -75,7 +75,7 @@ bot.on("message", (message) => {
 	// remove the prefix from the message
 	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str');
 	// split the message into pieces separated by a 'space'
-	const args = commandBody.split(' ');
+	const args = commandBody.replace(/ +/g, ' ').split(' ');
 	// switch command and args if firts argument is 'help'
 	// put the first arg into lowercase because it is the command name
 	const command = sanitizer.value(args[1] && args[1].toLowerCase() === 'help' ? args.splice(1, 1)[0].toLowerCase() : args.shift().toLowerCase(), 'str');
@@ -92,7 +92,7 @@ bot.on("message", (message) => {
 			} else {
 				let input = '';
 				// get search type and remove it from args for future processing
-				const searchType = sanitizer.value(args.shift(), 'str');
+				const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
 				if (searchType === 'id') {
 					if (args.length > 1) {
 						return message.channel.send('Please provide only one ID per research.');
@@ -157,61 +157,74 @@ bot.on("message", (message) => {
 
 		case 'help' :
 			const help = sanitizer.value(args[0], 'str');
+			let helpMessage = '';
 			switch (help) {
 				case 'ping':
-					message.channel.send('Test your ping for fun!');
+					helpMessage = 'Test your ping for fun!';
 					break;
 				case 'psm':
-					message.channel.send(`Type \`${prefix}psm [id <id> | name <name>]\` to get some information or \`${prefix}psm\` to be redirected to the website.`);
+					helpMessage =
+						`Type \`${prefix}psm id <id>\` or \`${prefix}psm name <name>\` to find \n` +
+						`Ex: \`${prefix}psm id oe001\`\n` +
+						`Type \`${prefix}psm\` to be redirected to the website.`
+					;
 					break;
 				case 'ship':
-					message.channel.send(
+					helpMessage =
 						'Shows information about a ship based on its name or ID.\n' +
-						`\`${prefix}ship [id <id> | name <name>]\`\n` +
-						`Ex: \`${prefix}ship id oe001\``
-					);
+						`\`${prefix}ship id <id>\` or \`${prefix}ship name <name>\`\n` +
+						`Ex: \`${prefix}ship id oe059\``
+					;
 					break;
 				case 'fort':
-					message.channel.send(
+					helpMessage =
 						'Shows information about a fort based on its name or ID.\n' +
-						`\`${prefix}fort [id <id> | name <name>]\`\n` +
-						`Ex: \`${prefix}fort oe001\``
-					);
+						`\`${prefix}fort id <id>\` or \`${prefix}fort name <name>\`\n` +
+						`Ex: \`${prefix}fort rvu065\``
+					;
 					break;
 				case 'crew':
-					message.channel.send(
+					helpMessage =
 						'Shows information about a crew based on its name or ID.\n' +
-						`\`${prefix}crew [id <id> | name <name>]\`\n` +
-						`Ex: \`${prefix}crew oe001\``
-					);
+						`\`${prefix}psm id <id>\` or \`${prefix}psm name <name>\`\n` +
+						`Ex: \`${prefix}crew ca063\``
+					;
 					break;
 				case 'factions':
-					message.channel.send('List of factions.');
+					helpMessage = 'List of factions with their flag.';
 					break;
 				case 'extensions':
-					message.channel.send('List of extensions.');
+					helpMessage = 'List of extensions as flag, full name, short name, community short name and WizKids short name.';
 					break;
 				case 'rarities':
-					message.channel.send('List of rarities.');
+					helpMessage = 'List of rarities with their color';
 					break;
 				case 'purge':
 					if (hasManageMessagesPermission) {
-						message.channel.send('Purge previous messages. Give it the number of messages to delete.');
+						helpMessage = 'Purge previous messages. Give it the number of messages to delete.';
 					}
 					else {
-						message.channel.send(allHelp(hasManageMessagesPermission));
+						helpMessage = allHelp(hasManageMessagesPermission);
 					}
 					break;
 				default:
-					message.channel.send(allHelp(hasManageMessagesPermission));
+					helpMessage = allHelp(hasManageMessagesPermission);
 			}
+			if (['psm', 'ship', 'fort', 'crew'].includes(help)) {
+				helpMessage += '\n\nID research has a permissive syntax:\n' +
+										` * \`${prefix}extensions\` shows original, community and WizKids short names to use as prefix\n` +
+										' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
+										' * leading zeros are optional -> oe001 = oe01 = oe1'
+			}
+
+			message.channel.send(helpMessage);
 			break;
 
 		case 'ship':
 		case 'crew':
 		case 'fort':
 			let input = '';
-			const searchType = sanitizer.value(args.shift(), 'str');
+			const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
 			if (searchType === 'id') {
 				if (args.length > 1) {
 					return message.channel.send('Please provide only one ID per research.');
