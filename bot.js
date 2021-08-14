@@ -114,33 +114,50 @@ bot.on("message", (message) => {
 				}
 				// run all requests to API in parallel and process results all requests ended
 				Promise.all([
-					apiRequest(`${config.apiURI}/ship/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+					// add type as last element to identify each array as the are returned in api answer's order
+					apiRequest(`${config.apiURI}/ship/${searchType === 'id' ? 'id' : 'name'}/${input}`).then( data => { data.push('ship'); return data; }),
+					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`).then( data => { data.push('fort'); return data; }),
+					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`).then( data => { data.push('crew'); return data; }),
+					apiRequest(`${config.apiURI}/treasure/${searchType === 'id' ? 'id' : 'name'}/${input}`).then( data => { data.push('treasure'); return data; }),
 				])
-					.then(values => {
-						// flatten the input array to check the amount and type of results
-						const data = values.flat();
-						if (data.length === 0) {
+					.then( data => {
+						// create an associative array of data by item type
+						const dataByType = {};
+						let hasCrewData = false;
+						for (let array of data) {
+							const type = array.pop();
+							dataByType[type] = array;
+							// check if data contains crew items
+							if (type === 'crew' && array.length > 0) {
+								hasCrewData = true;
+							}
+						}
+						// flatten the input array to check the amount of results
+						const values = data.flat(1);
+
+						if (values.length === 0) {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 						}
 						// check if two results correspond to crews from the same card (with same ID, but database IDs follow each other)
-						else if (data.length === 1 || (data.length === 2 && data[0].idextension === data[1].idextension && data[0].idcrew + 1 === data[1].idcrew)) {
+						else if (values.length === 1 || (values.length === 2 && hasCrewData && values[0].idextension === values[1].idextension && values[0].id + 1 === values[1].id)) {
+							// retrieve the type of item
+							const type = values.pop();
 							// create detailed embed
-							const embeds = itemEmbed(data);
+							const embeds = itemEmbed(type, values);
 							message.channel.send(embeds[0]);
 							// add second embed if its a crew from the same card
 							if (embeds[1]) {
 								message.channel.send(embeds[1]);
 							}
 						} else {
-							// create one embed for each type of item (ship, fort, crew)
-							for (let value of values) {
+							// create one embed for each type of item
+							for (let type in dataByType) {
+								const array = dataByType[type];
 								// avoid creating an empty embed if there is no value for the item type
-								if (value.length === 0) {
+								if (array.length === 0) {
 									continue;
 								}
-								message.channel.send(itemsEmbed(value, input)).catch( err => {
+								message.channel.send(itemsEmbed(type, array, input)).catch( err => {
 									// console.log(err);
 									console.log('Too many results with the research: ' + input);
 									message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
@@ -190,6 +207,13 @@ bot.on("message", (message) => {
 						`Ex: \`${prefix}crew ca063\``
 					;
 					break;
+				case 'treasure':
+					helpMessage =
+						'Shows information about a treasure based on its name or ID.\n' +
+						`\`${prefix}treasure id <id>\` or \`${prefix}treasure name <name>\`\n` +
+						`Ex: \`${prefix}treasure rf066\``
+					;
+					break;
 				case 'factions':
 					helpMessage = 'List of factions with their flag.';
 					break;
@@ -210,9 +234,9 @@ bot.on("message", (message) => {
 				default:
 					helpMessage = allHelp(hasManageMessagesPermission);
 			}
-			if (['psm', 'ship', 'fort', 'crew'].includes(help)) {
+			if (['psm', 'ship', 'fort', 'crew', 'treasure'].includes(help)) {
 				helpMessage += '\n\nID research has a permissive syntax:\n' +
-										` * \`${prefix}extensions\` shows original, community and WizKids short names to use as prefix\n` +
+										` * \`${prefix}extensions\` shows original, community and WizKids short names to use as a prefix\n` +
 										' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
 										' * leading zeros are optional -> oe001 = oe01 = oe1'
 			}
@@ -223,6 +247,7 @@ bot.on("message", (message) => {
 		case 'ship':
 		case 'crew':
 		case 'fort':
+		case 'treasure':
 			let input = '';
 			const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
 			if (searchType === 'id') {
@@ -249,14 +274,14 @@ bot.on("message", (message) => {
 				.then( data => {
 					if (data.length === 0) {
 						message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
-					} else if (data.length === 1 || (data.length === 2 && data[0].idextension === data[1].idextension && data[0].idcrew + 1 === data[1].idcrew)) {
-						const embeds = itemEmbed(data);
+					} else if (data.length === 1 || (command === 'crew' && data.length === 2 && data[0].idextension === data[1].idextension && data[0].id + 1 === data[1].id)) {
+						const embeds = itemEmbed(command, data);
 						message.channel.send(embeds[0]);
 						if (embeds[1]) {
 							message.channel.send(embeds[1]);
 						}
 					} else {
-						message.channel.send(itemsEmbed(data, input)).catch( err => {
+						message.channel.send(itemsEmbed(command, data, input)).catch( err => {
 							// console.log(err);
 							console.log('Too many results with the research: ' + input);
 							message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');

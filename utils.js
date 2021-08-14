@@ -110,13 +110,13 @@ async function loadData(type) {
 	}
 	switch (type) {
 		case 'faction':
-			exports.factionsString = Object.values(exports.factions).reduce((output, faction) => output + config.emojis[faction.nameimg] + "\ \u200b\ \u200b" + faction.name + "\n", "");
+			exports.factionsString = Object.values(exports.factions).reduce((output, faction) => output + config.emojis[faction.nameimg] + " \u200b " + faction.name + "\n", "");
 			break;
 		case 'extension':
-			exports.extensionsString = Object.values(exports.extensions).reduce((output, extension) => output + emojis[extension.short] + "\ \u200b\ \u200b" + extension.name + " - " + extension.short + (extension.shortcommunity ? " - " + extension.shortcommunity : '') + (extension.shortwizkids ? " - " + extension.shortwizkids : '') + "\n", "");
+			exports.extensionsString = Object.values(exports.extensions).reduce((output, extension) => output + emojis[extension.short] + " \u200b " + extension.name + " - " + extension.short + (extension.shortcommunity ? " - " + extension.shortcommunity : '') + (extension.shortwizkids ? " - " + extension.shortwizkids : '') + "\n", "");
 			break;
 		case 'rarity':
-			exports.raritiesString = Object.values(exports.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name} \n`, "");
+			exports.raritiesString = Object.values(exports.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name}\n`, "");
 			break;
 	}
 

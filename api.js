@@ -67,50 +67,44 @@ api.use('/fort', fort);
 const crew = express.Router();
 api.use('/crew', crew);
 
+const treasure = express.Router();
+api.use('/treasure', treasure);
+
+const event_ = express.Router();
+api.use('/event', event_);
+
+/*
+ * /ship
+ */
+
 ship.get('/', (req, res) => {
-    res.json({error: 'Not implemented yet!'});
+	res.json({error: 'Not available!'});
 });
 
 ship.get('/id/:ship', (req, res) => {
 	const shipID = req.params.ship.substring(0, 10).toUpperCase();
 
-	const parts = shipID.match('(' + extensionsRegex + '([A-Z]{2}-)?(\\d+))|(.+)');
-	console.log(parts);
-
-	if ( parts[0].length === 0 || parts[0].length !== req.params.ship.length) {
+	if (shipID.length === 0 || shipID.length !== req.params.ship.length) {
 		return res.json([]);
 	}
 
-	if ( !parts[5] ) {
-		let   numID = parts[4],
-			  extensionShort = parts[2];
-		const particle = parts[3];
+	const parts = shipID.match(extensionsRegex + '?(.+)');
+	// console.log(parts);
 
-		if (particle && particle !== '') {
-			numID = particle + numID;
-		}
+	const extensionShort = parts[1], numID = parts[2];
 
-		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort])
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			// error will be an Error if one occurred during the query
-			console.log(err);
-			res.json({error: err});
-		});
-	}
-	else {
-		const numID = parts[5];
-		poolQuery("SELECT * FROM ship WHERE isfort = 0 AND numid REGEXP ?;", '^0*' + numID + 'a?$')
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			console.log(err);
-			res.json({error: err});
-		});
-	}
+	const query = "SELECT * FROM ship WHERE idtype != 2 AND numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
+	const params = extensionShort ? ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'a?$'];
+
+	poolQuery(query, params)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		// error will be an Error if one occurred during the query
+		console.log(err);
+		res.json({error: err});
+	});
 });
 
 ship.get('/name/:ship', (req, res) => {
@@ -120,7 +114,7 @@ ship.get('/name/:ship', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE isfort = 0 AND name REGEXP ?;", shipName)
+	poolQuery("SELECT * FROM ship WHERE idtype != 2 AND name REGEXP ?;", shipName)
 	.then( results => {
 		res.json(results);
 	})
@@ -130,43 +124,37 @@ ship.get('/name/:ship', (req, res) => {
 	});
 });
 
+/*
+ * /fort
+ */
+
 fort.get('/', (req, res) => {
-	res.json({error: 'Not implemented yet!'});
+	res.json({error: 'Not available!'});
 });
 
 fort.get('/id/:fort', (req, res) => {
 	const fortID = req.params.fort.substring(0, 10).toUpperCase();
 
-	const parts = fortID.match('(' + extensionsRegex + '(.+))|(.+)');
-
-	if ( parts[0].length === 0 || parts[0].length !== req.params.fort.length) {
+	if (fortID.length === 0 || fortID.length !== req.params.fort.length) {
 		return res.json([]);
 	}
 
-	if ( !parts[5] ) {
-		const numID = parts[3],
-			extensionShort = parts[2];
+	const parts = fortID.match(extensionsRegex + '?(.+)');
+	// console.log(parts);
 
-		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + '$', extensionShort, extensionShort, extensionShort])
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			console.log(err);
-			res.json({error: err});
-		});
-	}
-	else {
-		const numID = parts[5];
-		poolQuery("SELECT * FROM ship WHERE isfort = 1 AND numId REGEXP ?;", '^0*' + numID + '.?$')
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			console.log(err);
-			res.json({error: err});
-		});
-	}
+	const extensionShort = parts[1], numID = parts[2];
+
+	const query = "SELECT * FROM ship WHERE idtype = 2 AND numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
+	const params = extensionShort ? ['^0*' + numID + '$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + '$'];
+
+	poolQuery(query, params)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});
 });
 
 fort.get('/name/:fort', (req, res) => {
@@ -176,7 +164,7 @@ fort.get('/name/:fort', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE isfort = 1 AND name REGEXP ?;", fortName)
+	poolQuery("SELECT * FROM ship WHERE idtype = 2 AND name REGEXP ?;", fortName)
 	.then( results => {
 		res.json(results);
 	})
@@ -186,47 +174,37 @@ fort.get('/name/:fort', (req, res) => {
 	});
 });
 
+/*
+ * /crew
+ */
+
 crew.get('/', (req, res) => {
-	res.json({error: 'Not implemented yet!'});
+	res.json({error: 'Not available!'});
 });
 
 crew.get('/id/:crew', (req, res) => {
 	const crewID = req.params.crew.substring(0, 10).toUpperCase();
 
-	const parts = crewID.match('(' + extensionsRegex + '([A-Z]{2}-)?(.+))|(.+)');
-
-	if ( parts[0].length === 0 || parts[0].length !== req.params.crew.length) {
+	if (crewID.length === 0 || crewID.length !== req.params.crew.length) {
 		return res.json([]);
 	}
 
-	if ( !parts[5] ) {
-		let numID = parts[4],
-			extensionShort = parts[2];
+	const parts = crewID.match(extensionsRegex + '?(.+)');
+	// console.log(parts);
 
-		if (parts[3] === '-' && extensionShort.match('(SS|PS|ES|GS|PP)')) {
-			extensionShort = 'SM';
-		}
+	const extensionShort = parts[1], numID = parts[2];
 
-		poolQuery("SELECT * FROM crew WHERE numid REGEXP ? AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);", ['^0*' + numID + '[a-zA-Z]?$', extensionShort, extensionShort, extensionShort])
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			console.log(err);
-			res.json({error: err});
-		});
-	}
-	else {
-		const numID = parts[5];
-		poolQuery("SELECT * FROM crew WHERE numid REGEXP ?;", '0*' + numID + '[a-zA-Z]?$')
-		.then( results => {
-			res.json(results);
-		})
-		.catch( err => {
-			console.log(err);
-			res.json({error: err});
-		});
-	}
+	const query = "SELECT * FROM crew WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
+	const params = extensionShort ? ['^0*' + numID + '[ab]?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + '[ab]?$'];
+
+	poolQuery(query, params)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});
 });
 
 crew.get('/name/:crew', (req, res) => {
@@ -246,8 +224,116 @@ crew.get('/name/:crew', (req, res) => {
 	});
 });
 
+/*
+ * /treasure
+ */
+
+treasure.get('/', (req, res) => {
+	res.json({error: 'Not available!'});
+});
+
+treasure.get('/id/:treasure', (req, res) => {
+	const treasureID = req.params.treasure.substring(0, 10).toUpperCase();
+
+	if (treasureID.length === 0 || treasureID.length !== req.params.treasure.length) {
+		return res.json([]);
+	}
+
+	const parts = treasureID.match(extensionsRegex + '?(.+)');
+	// console.log(parts);
+
+	const extensionShort = parts[1], numID = parts[2];
+
+	const query = "SELECT * FROM treasure WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
+	const params = extensionShort ? ['^0*' + numID + 'b?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'b?$'];
+
+	poolQuery(query, params)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});
+});
+
+treasure.get('/name/:treasure', (req, res) => {
+	const treasureName = req.params.treasure.substring(0, 30).toUpperCase();
+
+	if ( treasureName.length === 0 || treasureName.length !== req.params.treasure.length) {
+		return res.json([]);
+	}
+
+	poolQuery("SELECT * FROM treasure WHERE name REGEXP ?;", treasureName)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});
+});
+
+/*
+ * /event
+ */
+
+event_.get('/', (req, res) => {
+	res.json({error: 'Not available!'});
+});
+
+event_.get('/id/:event', (req, res) => {
+	res.json({error: 'Not implemented yet!'});
+
+	/*const eventID = req.params.event.substring(0, 10).toUpperCase();
+
+	if (eventID.length === 0 || eventID.length !== req.params.event.length) {
+		return res.json([]);
+	}
+
+	const parts = eventID.match(extensionsRegex + '?(.+)');
+	// console.log(parts);
+
+	const extensionShort = parts[1], numID = parts[2];
+
+	const query = "SELECT * FROM event WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
+	const params = extensionShort ? ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'a?$'];
+
+	poolQuery(query, params)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});*/
+});
+
+event_.get('/name/:event', (req, res) => {
+	res.json({error: 'Not implemented yet!'});
+
+	/*const eventName = req.params.event.substring(0, 30).toUpperCase();
+
+	if ( eventName.length === 0 || eventName.length !== req.params.event.length) {
+		return res.json([]);
+	}
+
+	poolQuery("SELECT * FROM event WHERE name REGEXP ?;", eventName)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});*/
+});
+
+/*
+ * /faction
+ */
+
 api.get('/faction', (req, res) => {
-    poolQuery("SELECT id, nameimg, defaultname FROM faction;")
+    poolQuery("SELECT * FROM faction;")
     .then( results => {
 		res.json(results);
 	})
@@ -257,8 +343,12 @@ api.get('/faction', (req, res) => {
 	});
 });
 
+/*
+ * /extension
+ */
+
 api.get('/extension', (req, res) => {
-    poolQuery("SELECT id, name, short, shortcommunity, shortwizkids FROM extension;")
+    poolQuery("SELECT * FROM extension;")
     .then( results => {
 		res.json(results);
 	})
@@ -268,8 +358,12 @@ api.get('/extension', (req, res) => {
 	});
 });
 
+/*
+ * /rarity
+ */
+
 api.get('/rarity', (req, res) => {
-    poolQuery("SELECT id, colorhex, namelocale, defaultname FROM rarity;")
+    poolQuery("SELECT * FROM rarity;")
     .then( results => {
 		res.json(results);
 	})

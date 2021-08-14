@@ -5,32 +5,20 @@ const Discord = require('discord.js'),
 module.exports = (factions, extensions, rarities) => {
     return {
         // create embed depending on type and number
-        itemsEmbed(items, input) {
+        itemsEmbed(type, items, input) {
             const fields = [];
-            let title = '';
-            // if the first item
-            if (items[0].hasOwnProperty('isfort')) {
-                if (items[0].isfort) {
-                    title = 'Forts listed as : \ ' + input;
-                }
-                else {
-                    title = 'Ships listed as : \ ' + input;
-                }
-            }
-            else {
-                title = 'Crews listed as : \ ' + input;
-            }
+            let title = type.charAt(0).toUpperCase() + type.slice(1) + 's listed as: ' + input;
             // pack results in columns of 8
             for ( let i = 0; i < items.length; i += 8 ) {
                 const output = items.slice(i, i + 8).reduce( (accu, item) => {
                     const faction = factions[item.idfaction];
                     const extensionObject = extensions[item.idextension];
                     return accu +
-                        '\ \u200b\ \u200b\ \u200b\ \u200b' +
+                        ' \u200b \u200b ' +
                         extensionObject.short + item.numid +
-                        '\ \u200b\ \u200b' +
+                        ' \u200b ' +
                         emojis[faction.nameimg] +
-                        '\ \u200b\ \u200b' +
+                        ' \u200b\ ' +
                         item.name +
                         '\n';
                 }, '');
@@ -42,14 +30,14 @@ module.exports = (factions, extensions, rarities) => {
                 .addFields(fields)
                 .setFooter('Provided by Broken Arms Team');
         },
-        itemEmbed(data) {
+        itemEmbed(type, data) {
             const embeds = [];
             for (let item of data) {
                 const faction = factions[item.idfaction];
                 const extensionObject = extensions[item.idextension];
 
                 const itemID = extensionObject.short + item.numid;
-                const itemType = item.hasOwnProperty('isfort') ? item.isfort ?
+                const itemType = item.hasOwnProperty('idtype') ? item.idtype === 2 ?
                     'fort' : 'ship' : 'crew';
 
                 const itemEmbed = new Discord.MessageEmbed()
@@ -63,38 +51,48 @@ module.exports = (factions, extensions, rarities) => {
                     // .setTimestamp()
                     .setFooter('Provided by Broken Arms Team');
 
-                if (itemType === 'ship') {
-                    itemEmbed.addFields(
-                        {
-                            name: emojis[extensionObject.short] + '\ \u200b\ \u200b' + extensionObject.name + '\ \u200b\ \u200b\ \u200b\ \u200b' + emojis[faction.nameimg] + '\ \u200b\ \u200b' + faction.name,
-                            value: item.points + ' points' + '\ \u200b\ \u200b\ \u200b' +
-                                emojis.masts + '\ ' + item.masts + '\ \u200b\ \u200b\ \u200b' +
-                                emojis.cargo + '\ ' + item.cargo + '\ \u200b\ \u200b\ \u200b' +
-                                emojis.speed + '\ ' + item.basemove + '\ \u200b\ \u200b\ \u200b' +
-                                emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + '\ \u200b\ \u200b' + emojis[cannon], ''),
-                        },
-                        {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                        {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
-                    )
-                } else if (itemType === 'crew') {
-                    itemEmbed.addFields(
-                        {
-                            name: emojis[extensionObject.short] + '\ \u200b\ \u200b' + extensionObject.name + '\ \u200b\ \u200b\ \u200b\ \u200b' + emojis[faction.nameimg] + '\ \u200b\ \u200b' + faction.name,
-                            value: item.points + ' points'
-                        },
-                        {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                        {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
-                    )
-                } else {
-                    itemEmbed.addFields(
-                        {
-                            name: emojis[extensionObject.short] + '\ \u200b\ \u200b' + extensionObject.name + '\ \u200b\ \u200b\ \u200b\ \u200b' + emojis[faction.nameimg] + '\ \u200b\ \u200b' + faction.name,
-                            value: item.points + ' points' + '\ \u200b\ \u200b\ \u200b' +
-                                emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + '\ \u200b\ \u200b' + emojis[cannon], ''),
-                        },
-                        {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                        {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
-                    )
+                switch(type){
+                    case 'ship':
+                        itemEmbed.addFields([
+                            {
+                                name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
+                                value: item.points + ' points' + ' \u200b \u200b ' +
+                                    emojis.masts + ' ' + item.masts + ' \u200b \u200b ' +
+                                    emojis.cargo + ' ' + item.cargo + ' \u200b \u200b ' +
+                                    emojis.speed + ' ' + item.basemove + ' \u200b \u200b ' +
+                                    emojis.cannon + ' ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b ' + emojis[cannon], ''),
+                            },
+                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
+                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                        ]);
+                        break;
+                    case 'crew':
+                        itemEmbed.addFields([
+                            {
+                                name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
+                                value: item.points + ' points'
+                            },
+                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
+                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                        ]);
+                        break;
+                    case 'fort':
+                        itemEmbed.addFields([
+                            {
+                                name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
+                                value: item.points + ' points \u200b \u200b ' +
+                                    emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b b' + emojis[cannon], ''),
+                            },
+                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
+                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                        ]);
+                        break;
+                    case 'treasure':
+                        itemEmbed.addField(
+                            emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short,
+                            item.defaultaptitude ?? '-'
+                        );
+                        break;
                 }
                 embeds.push( itemEmbed );
             }
