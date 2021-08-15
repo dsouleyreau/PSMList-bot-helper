@@ -14,12 +14,9 @@ module.exports = (factions, extensions, rarities) => {
                     const faction = factions[item.idfaction];
                     const extensionObject = extensions[item.idextension];
                     return accu +
-                        ' \u200b \u200b ' +
-                        extensionObject.short + item.numid +
-                        ' \u200b ' +
-                        emojis[faction.nameimg] +
-                        ' \u200b\ ' +
-                        item.name +
+                        ' \u200b \u200b ' + extensionObject.short + item.numid +
+                        (faction && faction.nameimg ? ' \u200b ' + emojis[faction.nameimg] : '') +
+                        ' \u200b\ ' + item.name +
                         '\n';
                 }, '');
                 fields.push({ name: title, value: output, inline: true });

@@ -88,13 +88,13 @@ ship.get('/id/:ship', (req, res) => {
 		return res.json([]);
 	}
 
-	const parts = shipID.match(extensionsRegex + '?(.+)');
+	const parts = shipID.match(extensionsRegex + '?([^-]+-)?(.+)');
 	// console.log(parts);
 
-	const extensionShort = parts[1], numID = parts[2];
+	const extensionShort = parts[1], prefix = parts[2], numID = parts[3];
 
 	const query = "SELECT * FROM ship WHERE idtype != 2 AND numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
-	const params = extensionShort ? ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'a?$'];
+	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}a?$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}a?$`];
 
 	poolQuery(query, params)
 	.then( results => {
@@ -139,13 +139,13 @@ fort.get('/id/:fort', (req, res) => {
 		return res.json([]);
 	}
 
-	const parts = fortID.match(extensionsRegex + '?(.+)');
+	const parts = fortID.match(extensionsRegex + '?([^-]+-)?(.+)');
 	// console.log(parts);
 
-	const extensionShort = parts[1], numID = parts[2];
+	const extensionShort = parts[1], prefix = parts[2], numID = parts[3];
 
 	const query = "SELECT * FROM ship WHERE idtype = 2 AND numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
-	const params = extensionShort ? ['^0*' + numID + '$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + '$'];
+	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}$`];
 
 	poolQuery(query, params)
 	.then( results => {
@@ -189,13 +189,13 @@ crew.get('/id/:crew', (req, res) => {
 		return res.json([]);
 	}
 
-	const parts = crewID.match(extensionsRegex + '?(.+)');
+	const parts = crewID.match(extensionsRegex + '?([^-]+-)?(.+)');
 	// console.log(parts);
 
-	const extensionShort = parts[1], numID = parts[2];
+	const extensionShort = parts[1], prefix = parts[2], numID = parts[3];
 
 	const query = "SELECT * FROM crew WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
-	const params = extensionShort ? ['^0*' + numID + '[ab]?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + '[ab]?$'];
+	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}[ab]?$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}[ab]?$`];
 
 	poolQuery(query, params)
 	.then( results => {
@@ -239,13 +239,13 @@ treasure.get('/id/:treasure', (req, res) => {
 		return res.json([]);
 	}
 
-	const parts = treasureID.match(extensionsRegex + '?(.+)');
+	const parts = treasureID.match(extensionsRegex + '?([^-]+-)?(.+)');
 	// console.log(parts);
 
-	const extensionShort = parts[1], numID = parts[2];
+	const extensionShort = parts[1], prefix = parts[2], numID = parts[3];
 
 	const query = "SELECT * FROM treasure WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
-	const params = extensionShort ? ['^0*' + numID + 'b?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'b?$'];
+	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}b?$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}b?$`];
 
 	poolQuery(query, params)
 	.then( results => {
@@ -291,13 +291,13 @@ event_.get('/id/:event', (req, res) => {
 		return res.json([]);
 	}
 
-	const parts = eventID.match(extensionsRegex + '?(.+)');
+	const parts = eventID.match(extensionsRegex + '?([^-]+-)?(.+)');
 	// console.log(parts);
 
-	const extensionShort = parts[1], numID = parts[2];
+	const extensionShort = parts[1], prefix = parts[2], numID = parts[3];
 
 	const query = "SELECT * FROM event WHERE numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
-	const params = extensionShort ? ['^0*' + numID + 'a?$', extensionShort, extensionShort, extensionShort] : ['^0*' + numID + 'a?$'];
+	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}?$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}?$`];
 
 	poolQuery(query, params)
 	.then( results => {

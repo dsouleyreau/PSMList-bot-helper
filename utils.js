@@ -1,27 +1,27 @@
 
 const http  = require('http'),
-	  https = require('https');
+	https = require('https');
 
 function apiRequest(url, options, data) {
 	return new Promise( (resolve, reject) => {
 		const req = (url.match(/https/) ? https : http)
-		.request(url, options, (res) => {
-			let output = '';
-			res.on('data', data => {
-				output += data;
-			});
+			.request(url, options, (res) => {
+				let output = '';
+				res.on('data', data => {
+					output += data;
+				});
 
-			res.on('end', () => {
-				try {
-					output = JSON.parse(output);
-					resolve(output);
-				} catch (err) {
-					console.log('error with data', output);
-					output = {error: JSON.stringify(err)};
-					reject(output);
-				}
+				res.on('end', () => {
+					try {
+						output = JSON.parse(output);
+						resolve(output);
+					} catch (err) {
+						console.log('error with data', output);
+						output = {error: JSON.stringify(err)};
+						reject(output);
+					}
+				});
 			});
-		});
 
 		req.on('error', (err) => {
 			console.log("Request error: " + err.message);
@@ -56,8 +56,9 @@ function bulkApiRequest(...optionsList){
 function allHelp(hasManageMessagesPermission, prefix) {
 	return 'Available commands:\n' +
 		['ping', 'psm', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities']
-			.reduce((accu, command) => accu + ' \u200b \u200b ' + prefix + command + '\n', '')
-		+ (hasManageMessagesPermission ? ' - ' + prefix + 'purge\n' : '');
+			.reduce((accu, command) => accu + ' \u200b \u200b * ' + prefix + command + '\n', '')
+		+ (hasManageMessagesPermission ? ' \u200b \u200b - ' + prefix + 'purge\n' : '') + '\n' +
+		'Type `!help <command>` or `!<command> help` to get detailed information.';
 }
 
 const Discord = require('discord.js'),

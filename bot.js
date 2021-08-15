@@ -88,94 +88,6 @@ bot.on("message", (message) => {
 	const hasManageMessagesPermission = clientHasManageMessagesPermission || botHasManageMessagesPermission;
 
 	switch (command) {
-		case 'psm' :
-			if (args.length === 0) {
-				message.channel.send('More content is available at https://psmlist.com');
-			} else {
-				let input = '';
-				// get search type and remove it from args for future processing
-				const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
-				if (searchType === 'id') {
-					if (args.length > 1) {
-						return message.channel.send('Please provide only one ID per research.');
-					}
-					input = args[0];
-					if (input.length > 10) {
-						return message.channel.send('ID is limited to 10 characters.');
-					}
-				} else if (searchType === 'name' || searchType === 'text') {
-					input = sanitizer.value(args.join(' '), 'str');
-					if (input.length < 3) {
-						return message.channel.send('Name needs at least 3 characters.');
-					}
-					if (input.length > 30) {
-						return message.channel.send('Name is limited to 30 characters.');
-					}
-				} else {
-					return message.channel.send(`Please indicate if you search by name or ID.\nType \`${prefix}help\` if needed.`);
-				}
-				// run all requests to API in parallel and process results all requests ended
-				Promise.all([
-					// add type as last element to identify each array as the are returned in api answer's order
-					apiRequest(`${config.apiURI}/ship/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-					apiRequest(`${config.apiURI}/treasure/${searchType === 'id' ? 'id' : 'name'}/${input}`),
-				])
-					.then( data => {
-						// create an associative array of data by item type
-						const dataByType = {};
-						let hasCrewData = false;
-						for (let i in data) {
-							const array = data[i];
-							const type = psmDataTypes[i];
-							dataByType[type] = array;
-							// check if data contains crew items
-							if (type === 'crew' && array.length > 0) {
-								hasCrewData = true;
-							}
-						}
-						// get the amount of items to display
-						const length = data[0].length + data[1].length + data[2].length + data[3].length;
-
-						if (length === 0) {
-							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
-						} else {
-							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
-							const singleEmbed = (length === 1 || (length === 2 && hasCrewData && dataByType['crew'][0].idextension === dataByType['crew'][1].idextension && dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]));
-
-							// create one embed for each type of item
-							for (let type in dataByType) {
-								const array = dataByType[type];
-								// avoid creating an empty embed if there is no value for this item type
-								if (array.length === 0) {
-									continue;
-								}
-								// if data contains only one item or two successive crew
-								if (singleEmbed) {
-									// create detailed embed
-									const embeds = itemEmbed(type, array);
-									message.channel.send(embeds[0]);
-									// add second embed if its a crew from the same card
-									if (embeds[1]) {
-										message.channel.send(embeds[1]);
-									}
-								} else {
-									message.channel.send(itemsEmbed(type, array, input)).catch(err => {
-										// console.log(err);
-										console.log('Too many results with the research: ' + input);
-										message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
-									});
-								}
-							}
-						}
-					})
-					.catch(err => {
-						message.channel.send('Unexpected error, please try again.');
-						console.log(err);
-					});
-			}
-			break;
 
 		case 'help' :
 			const help = sanitizer.value(args[0], 'str');
@@ -249,6 +161,93 @@ bot.on("message", (message) => {
 			message.channel.send(helpMessage);
 			break;
 
+		case 'psm' :
+			if (args.length === 0) {
+				message.channel.send('More content is available at https://psmlist.com');
+			} else {
+				let input = '';
+				// get search type and remove it from args for future processing
+				const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+				if (searchType === 'id') {
+					if (args.length > 1) {
+						return message.channel.send('Please provide only one ID per research.');
+					}
+					input = args[0];
+					if (input.length > 10) {
+						return message.channel.send('ID is limited to 10 characters.');
+					}
+				} else if (searchType === 'name' || searchType === 'text') {
+					input = sanitizer.value(args.join(' '), 'str');
+					// check length without space characters
+					if (input.replace(' ', '').length < 3) {
+						return message.channel.send('Name needs at least 3 characters.');
+					}
+					if (input.length > 30) {
+						return message.channel.send('Name is limited to 30 characters.');
+					}
+				} else {
+					return message.channel.send(`Please indicate if you search by name or ID.\nType \`${prefix}help\` if needed.`);
+				}
+				// run all requests to API in parallel and process results all requests ended
+				Promise.all([
+					// add type as last element to identify each array as the are returned in api answer's order
+					apiRequest(`${config.apiURI}/ship/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+					apiRequest(`${config.apiURI}/treasure/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+				])
+					.then( data => {
+						// create an associative array of data by item type
+						const dataByType = {};
+						for (let i in data) {
+							const array = data[i];
+							const type = psmDataTypes[i];
+							dataByType[type] = array;
+						}
+
+						// get the amount of items to display
+						const length = data[0].length + data[1].length + data[2].length + data[3].length;
+
+						if (length === 0) {
+							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
+						} else {
+							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
+							const singleEmbed = (length === 1 || (length === dataByType['crew'].length && dataByType['crew'][0].idextension === dataByType['crew'][1].idextension && dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]));
+
+							// create one embed for each type of item
+							for (let type in dataByType) {
+								const array = dataByType[type];
+								// avoid creating an empty embed if there is no value for this item type
+								if (array.length === 0) {
+									continue;
+								}
+								// if data contains only one item or two successive crew
+								if (singleEmbed) {
+									// create detailed embed
+									const embeds = itemEmbed(type, array);
+									message.channel.send(embeds[0]);
+									// add second embed if its a crew from the same card
+									if (embeds[1]) {
+										message.channel.send(embeds[1]);
+									}
+								} else {
+									message.channel.send(itemsEmbed(type, array, input))
+										.catch(err => {
+											// console.log(err);
+											console.log('Too many results with the research: ' + input);
+											message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+										});
+								}
+							}
+						}
+					})
+					.catch(err => {
+						console.log(err);
+						message.channel.send('Unexpected error, please try again.');
+					});
+			}
+			break;
+
 		case 'ship':
 		case 'crew':
 		case 'fort':
@@ -265,7 +264,7 @@ bot.on("message", (message) => {
 				}
 			} else if (searchType === 'name' || searchType === 'text') {
 				input = sanitizer.value(args.join(' '), 'str');
-				if (input.length < 3) {
+				if (input.replace(' ', '').length < 3) {
 					return message.channel.send('Name needs at least 3 characters.');
 				}
 				if (input.length > 30) {
@@ -286,7 +285,8 @@ bot.on("message", (message) => {
 							message.channel.send(embeds[1]);
 						}
 					} else {
-						message.channel.send(itemsEmbed(command, data, input)).catch( err => {
+						message.channel.send(itemsEmbed(command, data, input))
+						.catch( err => {
 							// console.log(err);
 							console.log('Too many results with the research: ' + input);
 							message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
@@ -339,10 +339,10 @@ bot.on("message", (message) => {
 			message.delete();
 
 			message.channel.bulkDelete(number, true)
-				.catch(err => {
-					console.log(err);
-					message.channel.send('Failed to delete old messages!');
-				});
+			.catch(err => {
+				console.log(err);
+				message.channel.send('Failed to delete old messages!');
+			});
 			break;
 
 		default :
