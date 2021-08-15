@@ -53,17 +53,11 @@ function bulkApiRequest(...optionsList){
 	return Promise.all(promises).then((values) => values.flat() );
 }
 
-function allHelp(hasManageMessagesPermission) {
+function allHelp(hasManageMessagesPermission, prefix) {
 	return 'Available commands:\n' +
-		' * ping\n' +
-		' * psm\n' +
-		' * ship\n' +
-		' * fort\n' +
-		' * crew\n' +
-		' * factions\n' +
-		' * extensions\n' +
-		' * rarities\n' +
-		(hasManageMessagesPermission ? ' - purge\n' : '');
+		['ping', 'psm', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities']
+			.reduce((accu, command) => accu + ' \u200b \u200b ' + prefix + command + '\n', '')
+		+ (hasManageMessagesPermission ? ' - ' + prefix + 'purge\n' : '');
 }
 
 const Discord = require('discord.js'),

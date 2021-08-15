@@ -37,15 +37,13 @@ module.exports = (factions, extensions, rarities) => {
                 const extensionObject = extensions[item.idextension];
 
                 const itemID = extensionObject.short + item.numid;
-                const itemType = item.hasOwnProperty('idtype') ? item.idtype === 2 ?
-                    'fort' : 'ship' : 'crew';
 
                 const itemEmbed = new Discord.MessageEmbed()
                     .setColor(rarities[item.idrarity].color)
                     .attachFiles([__dirname + '/bot_icon.png'])
-                    .setAuthor(`PSM ${itemType} identity`, 'attachment://bot_icon.png', 'https://psmlist.com/')
+                    .setAuthor(`PSM ${type} identity`, 'attachment://bot_icon.png', 'https://psmlist.com/')
                     .setTitle(`${item.name} (${itemID})`)
-                    .setURL('https://psmlist.com/ship/' + itemID)
+                    .setURL('https://psmlist.com/public/' + type + '/' + itemID)
                     //.addField('Inline field title', 'Some value here', true)
                     //.setImage('https://i.imgur.com/wSTFkRM.png')
                     // .setTimestamp()
@@ -62,18 +60,18 @@ module.exports = (factions, extensions, rarities) => {
                                     emojis.speed + ' ' + item.basemove + ' \u200b \u200b ' +
                                     emojis.cannon + ' ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b ' + emojis[cannon], ''),
                             },
-                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                            {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
+                            {name: 'Flavor Text', value: item.defaultlore || '-', inline: true}
                         ]);
                         break;
                     case 'crew':
                         itemEmbed.addFields([
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: item.points + ' points'
+                                value: '**' + item.points + '** points',
                             },
-                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                            { name: 'Ability', value: item.defaultaptitude || '-', inline: true },
+                            { name: 'Flavor Text', value: item.defaultlore || '-', inline: true },
                         ]);
                         break;
                     case 'fort':
@@ -83,14 +81,14 @@ module.exports = (factions, extensions, rarities) => {
                                 value: item.points + ' points \u200b \u200b ' +
                                     emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b b' + emojis[cannon], ''),
                             },
-                            {name: 'Ability', value: item.defaultaptitude ?? '-', inline: true},
-                            {name: 'Flavor Text', value: item.defaultlore ?? '-', inline: true},
+                            {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
+                            {name: 'Flavor Text', value: item.defaultlore || '-', inline: true}
                         ]);
                         break;
                     case 'treasure':
                         itemEmbed.addField(
                             emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short,
-                            item.defaultaptitude ?? '-'
+                            item.defaultaptitude || '-'
                         );
                         break;
                 }
