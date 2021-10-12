@@ -1,6 +1,8 @@
 
 const http  = require('http'),
-	https = require('https');
+	  https = require('https'),
+	  config = require('./config.js'),
+	  { emojis, prefix } = config;
 
 function apiRequest(url, options, data) {
 	return new Promise( (resolve, reject) => {
@@ -53,17 +55,15 @@ function bulkApiRequest(...optionsList){
 	return Promise.all(promises).then((values) => values.flat() );
 }
 
-function allHelp(hasManageMessagesPermission, prefix) {
+function allHelp(hasManageMessagesPermission) {
 	return 'Available commands:\n' +
-		['ping', 'psm', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities']
-			.reduce((accu, command) => accu + ' \u200b \u200b * ' + prefix + command + '\n', '')
-		+ (hasManageMessagesPermission ? ' \u200b \u200b - ' + prefix + 'purge\n' : '') + '\n' +
-		'Type `!help <command>` or `!<command> help` to get detailed information.';
+		['ping', 'search', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities']
+			.reduce((accu, command) => accu + ' \u200b \u200b * `' + prefix + command + '`\n', '')
+		+ (hasManageMessagesPermission ? ' \u200b \u200b - `' + prefix + 'purge`\n' : '') + '\n' +
+		`Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.`;
 }
 
-const Discord = require('discord.js'),
-	config = require('./config.js'),
-	{ emojis } = config;
+const Discord = require('discord.js');
 
 async function loadData(type) {
 	if (['faction', 'extension', 'rarity'].indexOf(type) === - 1) {

@@ -17,8 +17,8 @@ const Discord = require( 'discord.js' ),
 			  },
 		  }
 	  }*/),
-	  prefix = '!',
 	  config = require('./config'),
+	  prefix = config.prefix,
 	  sanitizer = require('sanitize')(),
 	  { apiRequest, loadData, allHelp } = require('./utils.js');
 
@@ -96,11 +96,11 @@ bot.on("message", (message) => {
 				case 'ping':
 					helpMessage = 'Test your ping for fun!';
 					break;
-				case 'psm':
+				case 'search':
 					helpMessage =
-						`Type \`${prefix}psm\` to be redirected to the website\n` +
-						`\`${prefix}psm id <id>\` or \`${prefix}psm name <name>\` to research in PSMList database\n` +
-						`Ex: \`${prefix}psm id oe001\``
+						`Type \`${prefix}search\` to be redirected to the website\n` +
+						`\`${prefix}search id <id>\` or \`${prefix}search name <name>\` to research in searchList database\n` +
+						`Ex: \`${prefix}search id oe001\``
 					;
 					break;
 				case 'ship':
@@ -145,13 +145,13 @@ bot.on("message", (message) => {
 						helpMessage = 'Purge previous messages. Give it the number of messages to delete.';
 					}
 					else {
-						helpMessage = allHelp(hasManageMessagesPermission, prefix);
+						helpMessage = allHelp(hasManageMessagesPermission);
 					}
 					break;
 				default:
-					helpMessage = allHelp(hasManageMessagesPermission, prefix);
+					helpMessage = allHelp(hasManageMessagesPermission);
 			}
-			if (['psm', 'ship', 'fort', 'crew', 'treasure'].includes(help)) {
+			if (['search', 'ship', 'fort', 'crew', 'treasure'].includes(help)) {
 				helpMessage += '\n\nID research has a permissive syntax:\n' +
 										` * \`${prefix}extensions\` shows original, community and WizKids short names to use as a prefix\n` +
 										' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
@@ -161,7 +161,7 @@ bot.on("message", (message) => {
 			message.channel.send(helpMessage);
 			break;
 
-		case 'psm' :
+		case 'search' :
 			if (args.length === 0) {
 				message.channel.send('More content is available at https://psmlist.com');
 			} else {

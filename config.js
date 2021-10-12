@@ -1,4 +1,5 @@
 module.exports = {
+    "prefix": "psm ",
     "apiURI": "http://localhost:8080/api",
     "emojis": {
         "pirate": "<:pirate:848670879068323850>",
