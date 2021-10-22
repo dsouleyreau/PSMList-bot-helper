@@ -51,6 +51,8 @@ require('./utils').loadData('extension').then( imports => {
 		}
 		extensionShorts.push(extension.shortwizkids.toUpperCase())
 	});
+	extensionShorts.sort().reverse();
+	// console.log(extensionShorts)
 	extensionsRegex = '(' + extensionShorts.reduce((accu, extension, index) => accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
 	// console.log(extensionsRegex);
 });
@@ -95,6 +97,7 @@ ship.get('/id/:ship', (req, res) => {
 
 	const query = "SELECT * FROM ship WHERE idtype != 2 AND numid REGEXP ?" + (extensionShort ? " AND idextension = (SELECT id FROM extension WHERE short = ? OR shortcommunity = ? OR shortwizkids = ?);" : ";");
 	const params = extensionShort ? [`^${prefix ?? ''}0*${numID}a?$`, extensionShort, extensionShort, extensionShort] : [`^${prefix ?? ''}0*${numID}a?$`];
+	// console.log(params);
 
 	poolQuery(query, params)
 	.then( results => {

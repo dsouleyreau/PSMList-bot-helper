@@ -8,15 +8,15 @@
 
 // imports
 const Discord = require( 'discord.js' ),
-	  bot = new Discord.Client(/*{
+	  bot = new Discord.Client({
 		  presence: {
 		  	  status: 'online',
 				  activity: {
-				  name: 'In maintenance!',
-				  type: 4,
+				  name: 'psm help',
+				  type: 'PLAYING',
 			  },
 		  }
-	  }*/),
+	  }),
 	  config = require('./config'),
 	  prefix = config.prefix,
 	  sanitizer = require('sanitize')(),
@@ -24,9 +24,9 @@ const Discord = require( 'discord.js' ),
 
 // dynamic / async imports
 let   /*factions,*/ factionsEmbed,
-	  /*extensions,*/ extensionsEmbed,
-	  /*rarities,*/ raritiesEmbed,
-	  itemEmbed, itemsEmbed;
+	/*extensions,*/ extensionsEmbed,
+	/*rarities,*/ raritiesEmbed,
+	buildItemEmbed, buildItemsEmbed;
 
 Promise.all([
 	// parallel fetching of factions, extensions and rarity instead of serial fetching
@@ -37,11 +37,11 @@ Promise.all([
 .then((modules) => {
 	const [ faction, extension, rarity ] = modules,
 		  items = require('./items.js')(faction.factions, extension.extensions, rarity.rarities);
-	      factionsEmbed = faction.factionsEmbed,
+		  factionsEmbed = faction.factionsEmbed,
 		  extensionsEmbed = extension.extensionsEmbed,
-	      raritiesEmbed = rarity.raritiesEmbed,
-	      itemEmbed = items.itemEmbed;
-	      itemsEmbed = items.itemsEmbed;
+		  raritiesEmbed = rarity.raritiesEmbed,
+		  buildItemEmbed = items.buildItemEmbed;
+		  buildItemsEmbed = items.buildItemsEmbed;
 })
 .catch( err => {
 	console.log(err);
@@ -105,28 +105,28 @@ bot.on("message", (message) => {
 					break;
 				case 'ship':
 					helpMessage =
-						'Shows information about a ship based on its name or ID.\n' +
+						'Shows information about a ship based on its `name` or `id`.\n' +
 						`\`${prefix}ship id <id>\` or \`${prefix}ship name <name>\`\n` +
 						`Ex: \`${prefix}ship id oe059\``
 					;
 					break;
 				case 'fort':
 					helpMessage =
-						'Shows information about a fort based on its name or ID.\n' +
+						'Shows information about a fort based on its `name` or `id`.\n' +
 						`\`${prefix}fort id <id>\` or \`${prefix}fort name <name>\`\n` +
 						`Ex: \`${prefix}fort rvu065\``
 					;
 					break;
 				case 'crew':
 					helpMessage =
-						'Shows information about a crew based on its name or ID.\n' +
+						'Shows information about a crew based on its `name` or `id`.\n' +
 						`\`${prefix}crew id <id>\` or \`${prefix}crew name <name>\`\n` +
 						`Ex: \`${prefix}crew ca063\``
 					;
 					break;
 				case 'treasure':
 					helpMessage =
-						'Shows information about a treasure based on its name or ID.\n' +
+						'Shows information about a treasure based on its `name` or `id`.\n' +
 						`\`${prefix}treasure id <id>\` or \`${prefix}treasure name <name>\`\n` +
 						`Ex: \`${prefix}treasure rof209\``
 					;
@@ -153,9 +153,9 @@ bot.on("message", (message) => {
 			}
 			if (['search', 'ship', 'fort', 'crew', 'treasure'].includes(help)) {
 				helpMessage += '\n\nID research has a permissive syntax:\n' +
-										` * \`${prefix}extensions\` shows original, community and WizKids short names to use as a prefix\n` +
-										' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
-										' * leading zeros are optional -> oe001 = oe01 = oe1'
+					` * \`${prefix}extensions\` shows original, community and WizKids short names to use as a prefix\n` +
+					' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
+					' * leading zeros are optional -> oe001 = oe01 = oe1'
 			}
 
 			message.channel.send(helpMessage);
@@ -165,9 +165,13 @@ bot.on("message", (message) => {
 			if (args.length === 0) {
 				message.channel.send('More content is available at https://psmlist.com');
 			} else {
-				let input = '';
+				let input = '', searchType = '';
 				// get search type and remove it from args for future processing
-				const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+				try {
+					searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+				} catch (e) {
+					console.log(`Error with command '${message.content}'`);
+				}
 				if (searchType === 'id') {
 					if (args.length > 1) {
 						return message.channel.send('Please provide only one ID per research.');
@@ -186,7 +190,7 @@ bot.on("message", (message) => {
 						return message.channel.send('Name is limited to 30 characters.');
 					}
 				} else {
-					return message.channel.send(`Please indicate if you search by name or ID.\nType \`${prefix}help\` if needed.`);
+					return message.channel.send(`Please indicate if you search by \`name\` or \`id\`.\nType \`${prefix}help\` if needed.`);
 				}
 				// run all requests to API in parallel and process results all requests ended
 				Promise.all([
@@ -212,7 +216,7 @@ bot.on("message", (message) => {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 						} else {
 							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
-							const singleEmbed = (length === 1 || (length === dataByType['crew'].length && dataByType['crew'][0].idextension === dataByType['crew'][1].idextension && dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]));
+							const isSingleEmbed = (length === 1 || (length === dataByType['crew'].length && dataByType['crew'][0].idextension === dataByType['crew'][1].idextension && dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]));
 
 							// create one embed for each type of item
 							for (let type in dataByType) {
@@ -222,21 +226,31 @@ bot.on("message", (message) => {
 									continue;
 								}
 								// if data contains only one item or two successive crew
-								if (singleEmbed) {
+								if (isSingleEmbed) {
 									// create detailed embed
-									const embeds = itemEmbed(type, array);
-									message.channel.send(embeds[0]);
+									const embeds = buildItemEmbed(type, array);
+									message.channel.send(embeds[0])
+									.catch(err => {
+										console.log(err);
+										console.log('Error with the research: ' + input);
+										// message.channel.send('Internal error.');
+									});
 									// add second embed if its a crew from the same card
 									if (embeds[1]) {
-										message.channel.send(embeds[1]);
+										message.channel.send(embeds[1])
+										.catch(err => {
+											console.log(err);
+											console.log('Error with the research: ' + input);
+											// message.channel.send('Internal error.');
+										});
 									}
 								} else {
-									message.channel.send(itemsEmbed(type, array, input))
-										.catch(err => {
-											// console.log(err);
-											console.log('Too many results with the research: ' + input);
-											message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
-										});
+									message.channel.send(buildItemsEmbed(type, array, input))
+									.catch(err => {
+										// console.log(err);
+										console.log('Too many results with the research: ' + input);
+										message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+									});
 								}
 							}
 						}
@@ -252,8 +266,13 @@ bot.on("message", (message) => {
 		case 'crew':
 		case 'fort':
 		case 'treasure':
-			let input = '';
-			const searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+			let input = '', searchType = '';
+			// get search type and remove it from args for future processing
+			try {
+				searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+			} catch (e) {
+				console.log(`Error with command '${message.content}'`);
+			}
 			if (searchType === 'id') {
 				if (args.length > 1) {
 					return message.channel.send('Please provide only one ID per research.');
@@ -271,7 +290,7 @@ bot.on("message", (message) => {
 					return message.channel.send('Name is limited to 30 characters.');
 				}
 			} else {
-				return message.channel.send(`Please indicate if you search by name or ID.\nType \`${prefix}help\` if needed.`);
+				return message.channel.send(`Please indicate if you search by \`name\` or \`id\`.\nType \`${prefix}help\` if needed.`);
 			}
 
 			apiRequest(`${config.apiURI}/${command}/${searchType === 'id' ? 'id' : 'name'}/${input}`)
@@ -279,13 +298,21 @@ bot.on("message", (message) => {
 					if (data.length === 0) {
 						message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 					} else if (data.length === 1 || (command === 'crew' && data.length === 2 && data[0].idextension === data[1].idextension && data[0].numid.match('[^a]+')[0] === data[1].numid.match('[^b]+')[0])) {
-						const embeds = itemEmbed(command, data);
-						message.channel.send(embeds[0]);
+						const embeds = buildItemEmbed(command, data);
+						message.channel.send(embeds[0])
+						.catch( err => {
+							console.log('Error line 305: ' + input);
+							console.log(err);
+						});
 						if (embeds[1]) {
-							message.channel.send(embeds[1]);
+							message.channel.send(embeds[1])
+							.catch( err => {
+								console.log('Error line 305: ' + input);
+								console.log(err);
+							});
 						}
 					} else {
-						message.channel.send(itemsEmbed(command, data, input))
+						message.channel.send(buildItemsEmbed(command, data, input))
 						.catch( err => {
 							// console.log(err);
 							console.log('Too many results with the research: ' + input);
@@ -324,6 +351,7 @@ bot.on("message", (message) => {
 			}
 
 			let number = 0;
+
 			try {
 				number = sanitizer.value(Number.parseInt(args[0]), 'int');
 			} catch (e) {
@@ -331,7 +359,7 @@ bot.on("message", (message) => {
 			}
 
 			// check value type
-			if (isNaN(args[0]) || args[0] < 2 || args[0] > 10) {
+			if (!Number.isFinite(number) || number < 2 || number > 10) {
 				return message.channel.send('Indicate a valid number, between 2 and 10.');
 			}
 

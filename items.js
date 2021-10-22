@@ -5,7 +5,7 @@ const Discord = require('discord.js'),
 module.exports = (factions, extensions, rarities) => {
     return {
         // create embed depending on type and number
-        itemsEmbed(type, items, input) {
+        buildItemsEmbed(type, items, input) {
             const fields = [];
             let title = type.charAt(0).toUpperCase() + type.slice(1) + 's listed as: ' + input;
             // pack results in columns of 8
@@ -27,7 +27,7 @@ module.exports = (factions, extensions, rarities) => {
                 .addFields(fields)
                 .setFooter('Provided by Broken Arms Team');
         },
-        itemEmbed(type, data) {
+        buildItemEmbed(type, data) {
             const embeds = [];
             for (let item of data) {
                 const faction = factions[item.idfaction];
@@ -76,7 +76,7 @@ module.exports = (factions, extensions, rarities) => {
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
                                 value: item.points + ' points \u200b \u200b ' +
-                                    emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b b' + emojis[cannon], ''),
+                                    emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b ' + emojis[cannon], ''),
                             },
                             {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
                             {name: 'Flavor Text', value: item.defaultlore || '-', inline: true}
