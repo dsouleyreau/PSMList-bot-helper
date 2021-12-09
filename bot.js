@@ -18,7 +18,7 @@ const Discord = require( 'discord.js' ),
 		  }
 	  }),
 	  config = require('./config'),
-	  prefix = config.prefix,
+	  prefix = config.prefix.toLowerCase(),
 	  sanitizer = require('sanitize')(),
 	  { apiRequest, loadData, allHelp } = require('./utils.js');
 
@@ -70,9 +70,10 @@ bot.on("message", (message) => {
 		return;
 	}
 	// stop if message is too small or prefix not the one this bot expects
-	if ( message.content.length < 3 || !message.content.startsWith( prefix ) ) {
+	if ( message.content.length < 3 || message.content.slice(0, prefix.length).toLowerCase() !== prefix ) {
 		return;
 	}
+	message.content = message.content.toLowerCase();
 
 	// remove the prefix from the message
 	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str');
