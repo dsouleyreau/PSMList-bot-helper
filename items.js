@@ -14,7 +14,7 @@ module.exports = (factions, extensions, rarities) => {
                     const faction = factions[item.idfaction];
                     const extensionObject = extensions[item.idextension];
                     return accu +
-                        ' \u200b \u200b ' + extensionObject.short + item.numid +
+                        ' \u200b \u200b ' + '[' + extensionObject.short + item.numid + '](https://psmlist.com/public/' + (type !== 'fort' ? type : 'ship') + '/' + extensionObject.short + item.numid + ')' +
                         (faction && faction.nameimg ? ' \u200b ' + emojis[faction.nameimg] : '') +
                         ' \u200b\ ' + item.name +
                         '\n';
@@ -35,14 +35,17 @@ module.exports = (factions, extensions, rarities) => {
 
                 const itemID = extensionObject.short + item.numid;
 
+                if (type === 'fort') {
+                    type = 'ship';
+                }
+
                 const itemEmbed = new Discord.MessageEmbed()
                     .setColor(rarities[item.idrarity].color)
-                    .attachFiles([__dirname + '/bot_icon.png'])
+                    .attachFiles([`${__dirname}/bot_icon.png`])
                     .setAuthor(`PSM ${type} identity`, 'attachment://bot_icon.png', 'https://psmlist.com/')
                     .setTitle(`${item.name} (${itemID})`)
-                    .setURL('https://psmlist.com/public/' + type + '/' + itemID)
-                    //.addField('Inline field title', 'Some value here', true)
-                    //.setImage('https://i.imgur.com/wSTFkRM.png')
+                    .setURL(`https://psmlist.com/public/${type}/${itemID}`)
+                    .setImage(`https://psmlist.com/public/img/gameicons/full/${extensionObject.short}/${item.numid}.jpg`)
                     // .setTimestamp()
                     .setFooter('Provided by Broken Arms Team');
 
