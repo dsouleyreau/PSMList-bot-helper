@@ -49,12 +49,14 @@ module.exports = (factions, extensions, rarities) => {
                     // .setTimestamp()
                     .setFooter('Provided by Broken Arms Team');
 
+                const fields = [];
+
                 switch(type){
                     case 'ship':
-                        itemEmbed.addFields([
+                        fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: item.points + ' points' + ' \u200b \u200b ' +
+                                value: '**' + item.points + '** points' + ' \u200b \u200b ' +
                                     emojis.masts + ' ' + item.masts + ' \u200b \u200b ' +
                                     emojis.cargo + ' ' + item.cargo + ' \u200b \u200b ' +
                                     emojis.speed + ' ' + item.basemove + ' \u200b \u200b ' +
@@ -62,36 +64,44 @@ module.exports = (factions, extensions, rarities) => {
                             },
                             {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
                             {name: 'Flavor Text', value: item.defaultlore || '-', inline: true}
-                        ]);
+                        );
                         break;
                     case 'crew':
-                        itemEmbed.addFields([
+                        fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
                                 value: '**' + item.points + '** points',
                             },
                             { name: 'Ability', value: item.defaultaptitude || '-', inline: true },
                             { name: 'Flavor Text', value: item.defaultlore || '-', inline: true },
-                        ]);
+                        );
                         break;
                     case 'fort':
-                        itemEmbed.addFields([
+                        fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: item.points + ' points \u200b \u200b ' +
+                                value: '**' + item.points + '** points \u200b \u200b ' +
                                     emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b ' + emojis[cannon], ''),
                             },
                             {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
                             {name: 'Flavor Text', value: item.defaultlore || '-', inline: true}
-                        ]);
+                        );
                         break;
                     case 'treasure':
-                        itemEmbed.addField(
-                            emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short,
-                            item.defaultaptitude || '-'
+                        fields.push(
+                            {
+                                name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short,
+                                value: item.defaultaptitude || '-'
+                            }
                         );
                         break;
                 }
+                
+                if (type !== 'treasure' && item.lookingforbetterpic === 1) {
+                    fields.push({name: 'The current image available for this ship is flagged "unsatisfactory".', value: 'If you are willing to help providing a better image of a built ship, please contact us at support@psmlist.com or via Discord.'})
+                }
+                
+                itemEmbed.addFields(fields);
                 embeds.push( itemEmbed );
             }
 
