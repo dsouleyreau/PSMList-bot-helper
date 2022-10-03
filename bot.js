@@ -76,7 +76,9 @@ bot.on("message", (message) => {
 	message.content = message.content.toLowerCase();
 
 	// remove the prefix from the message
-	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str');
+	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str')
+	// replace alternative apostrophes for the most widely used one
+		.replace(/‘|`/g, "'");
 	// split the message into pieces separated by a 'space'
 	const args = commandBody.replace(/ +/g, ' ').split(' ');
 	// switch command and args if firts argument is 'help'
