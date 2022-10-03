@@ -7,6 +7,7 @@
  */
 
 const express = require('express'),
+			cors = require('cors')
       app = express(),
       mysql = require('mysql'),
       dbConfig = require('./secret').db;
@@ -56,6 +57,8 @@ require('./utils').loadData('extension').then( imports => {
 	extensionsRegex = '(' + extensionShorts.reduce((accu, extension, index) => accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
 	// console.log(extensionsRegex);
 });
+
+app.use(cors())
 
 const api = express.Router();
 app.use('/api', api);
