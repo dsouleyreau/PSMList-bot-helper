@@ -24,7 +24,7 @@ const Discord = require( 'discord.js' ),
 
 // dynamic / async imports
 let   /*factions,*/ factionsEmbed,
-	/*extensions,*/ extensionsEmbed,
+	extensions, extensionsEmbed,
 	/*rarities,*/ raritiesEmbed,
 	buildItemEmbed, buildItemsEmbed;
 
@@ -42,6 +42,7 @@ Promise.all([
 		  raritiesEmbed = rarity.raritiesEmbed,
 		  buildItemEmbed = items.buildItemEmbed;
 		  buildItemsEmbed = items.buildItemsEmbed;
+		  extensions = extension.extensions
 })
 .catch( err => {
 	console.log(err);
@@ -209,7 +210,10 @@ bot.on("message", (message) => {
 						for (let i in data) {
 							const array = data[i];
 							const type = psmDataTypes[i];
-							dataByType[type] = array;
+							// avoid creating an empty embed if there is no value for this item type
+							if (array.length > 0) {
+								dataByType[type] = array;
+							}
 						}
 
 						// get the amount of items to display
@@ -219,15 +223,38 @@ bot.on("message", (message) => {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 						} else {
 							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
-							const isSingleEmbed = (length === 1 || (length === dataByType['crew'].length && dataByType['crew'][0].idextension === dataByType['crew'][1].idextension && dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]));
+							const isSingleEmbed = (
+								length === 1
+								||
+								(
+									// check if only one type
+									length === 2
+									&& Object.keys(dataByType).length === 1
+									&& (
+										// crew from the same card
+										(
+											dataByType['crew'] &&
+											(
+												dataByType['crew'][0].idextension === dataByType['crew'][1].idextension
+												&& dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]
+											)
+										)
+										||
+										// ships from both non unlimited and unlimited extensions
+										(
+											dataByType['ship'] &&
+											(
+												extensions[dataByType['ship'][0].idextension].short + 'U' === extensions[dataByType['ship'][1].idextension].short
+												|| extensions[dataByType['ship'][0].idextension].short === extensions[dataByType['ship'][1].idextension].short + 'U'
+											)
+										)
+									)
+								)
+							);
 
 							// create one embed for each type of item
 							for (let type in dataByType) {
 								const array = dataByType[type];
-								// avoid creating an empty embed if there is no value for this item type
-								if (array.length === 0) {
-									continue;
-								}
 								// if data contains only one item or two successive crew
 								if (isSingleEmbed) {
 									// create detailed embed

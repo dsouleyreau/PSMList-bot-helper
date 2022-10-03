@@ -379,6 +379,21 @@ api.get('/rarity', (req, res) => {
 	});
 });
 
+/*
+ * /technicalshape
+ */
+
+api.get('/technicalshape', (req, res) => {
+    poolQuery("SELECT * FROM technicalshape;")
+    .then( results => {
+		res.json(results);
+	})
+    .catch( err => {
+		console.log(err);
+		res.json({error: err});
+	});
+});
+
 api.get('*', (req, res) => {
 	res.json({});
 });
