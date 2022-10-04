@@ -165,7 +165,7 @@ bot.on("message", (message) => {
 				case 'udc':
 				case 'simcost':
 					helpTitle = helpCommand === 'udc' ? 'UDC': 'SimCost';
-					helpMessage = `Calculates the point value of a ship based on the [${helpTitle}](https://psmlist.com/public/${helpCommand}_calculator) algorithm.
+					helpMessage = `Calculates the point value of a ship based on the [${helpTitle}](https://psmlist.com/public/blog/documentation_${helpCommand}) algorithm.
 
 					\`${prefix}${helpCommand} <masts> <cargo> <speed> <cannons>\`
 					
