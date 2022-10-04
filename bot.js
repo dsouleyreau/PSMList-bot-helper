@@ -250,30 +250,33 @@ bot.on("message", (message) => {
 					.then( data => {
 						// create an associative array of data by item type
 						const dataByType = {};
-						for (let i in data) {
-							const array = data[i];
-							const type = psmDataTypes[i];
+						let types = 0;
+						for (let typeID in data) {
+							const array = data[typeID];
+							const type = psmDataTypes[typeID];
 							// avoid creating an empty embed if there is no value for this item type
 							if (array.length > 0) {
 								dataByType[type] = array;
+								types ++;
 							}
 						}
 
 						// get the amount of items to display
-						const length = data[0].length + data[1].length + data[2].length + data[3].length;
+						const length = data.flat().length;
 
 						if (length === 0) {
 							message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 						} else {
 							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
-							const isSingleEmbed = (
-								length === 1
-								||
+							const isSingleEmbed =
+								// more than one type or more than two items means multi embed
+								types > 1
+								|| length > 2 ? false :
+								// one item or two which match type specific conditions
 								(
-									// check if only one type
-									length === 2
-									&& Object.keys(dataByType).length === 1
-									&& (
+									length === 1
+									||
+									(
 										// crew from the same card
 										(
 											dataByType['crew'] &&
@@ -292,8 +295,7 @@ bot.on("message", (message) => {
 											)
 										)
 									)
-								)
-							);
+								);
 
 							// create one embed for each type of item
 							for (let type in dataByType) {
