@@ -322,9 +322,9 @@ bot.on("message", (message) => {
 								} else {
 									message.channel.send(buildItemsEmbed(type, array, input))
 									.catch(err => {
-										// console.log(err);
 										console.log('Too many results with the research: ' + input);
-										message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+										console.log(err);
+										message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
 									});
 								}
 							}
@@ -382,16 +382,16 @@ bot.on("message", (message) => {
 						if (embeds[1]) {
 							message.channel.send(embeds[1])
 							.catch( err => {
-								console.log('Error line 305: ' + input);
+								console.log('Error with input: ' + input);
 								console.log(err);
 							});
 						}
 					} else {
 						message.channel.send(buildItemsEmbed(command, data, input))
 						.catch( err => {
-							// console.log(err);
 							console.log('Too many results with the research: ' + input);
-							message.channel.send('Unable to generate result with more than 6000 characters. Please refine your search terms.');
+							console.log(err);
+							message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
 						});
 					}
 				})
@@ -534,7 +534,7 @@ bot.on("message", (message) => {
 			break;
 
 		default :
-			message.channel.send(`Unable to understand your request. Type ${prefix}help for the list of commands.`);
+			message.channel.send(`Unable to understand your request. Type ${prefix}help to show the list of available commands.`);
 			break;
 	}
 });
