@@ -45,7 +45,7 @@ Promise.all([
 		  extensions = extension.extensions
 })
 .catch( err => {
-	console.log(err);
+	console.trace(err);
 	process.exit(1);
 });
 
@@ -306,7 +306,7 @@ bot.on("message", (message) => {
 									const embeds = buildItemEmbed(type, array);
 									message.channel.send(embeds[0])
 									.catch(err => {
-										console.log(err);
+										console.trace(err);
 										console.log('Error with the research: ' + input);
 										// message.channel.send('Internal error.');
 									});
@@ -314,7 +314,7 @@ bot.on("message", (message) => {
 									if (embeds[1]) {
 										message.channel.send(embeds[1])
 										.catch(err => {
-											console.log(err);
+											console.trace(err);
 											console.log('Error with the research: ' + input);
 											// message.channel.send('Internal error.');
 										});
@@ -323,7 +323,7 @@ bot.on("message", (message) => {
 									message.channel.send(buildItemsEmbed(type, array, input))
 									.catch(err => {
 										console.log('Too many results with the research: ' + input);
-										console.log(err);
+										console.trace(err);
 										message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
 									});
 								}
@@ -331,7 +331,7 @@ bot.on("message", (message) => {
 						}
 					})
 					.catch(err => {
-						console.log(err);
+						console.trace(err);
 						message.channel.send('Unexpected error, please try again.');
 					});
 			}
@@ -377,26 +377,26 @@ bot.on("message", (message) => {
 						message.channel.send(embeds[0])
 						.catch( err => {
 							console.log('Error line 305: ' + input);
-							console.log(err);
+							console.trace(err);
 						});
 						if (embeds[1]) {
 							message.channel.send(embeds[1])
 							.catch( err => {
 								console.log('Error with input: ' + input);
-								console.log(err);
+								console.trace(err);
 							});
 						}
 					} else {
 						message.channel.send(buildItemsEmbed(command, data, input))
 						.catch( err => {
 							console.log('Too many results with the research: ' + input);
-							console.log(err);
+							console.trace(err);
 							message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
 						});
 					}
 				})
 				.catch(err => {
-					console.log(err);
+					console.trace(err);
 					message.channel.send('Unexpected error, please try again.');
 				});
 			break;
@@ -528,7 +528,7 @@ bot.on("message", (message) => {
 
 			message.channel.bulkDelete(number, true)
 			.catch(err => {
-				console.log(err);
+				console.trace(err);
 				message.channel.send('Failed to delete old messages!');
 			});
 			break;
@@ -544,11 +544,11 @@ bot.login(require('./secret.js').BOT_TOKEN)
 		console.log('PSM Helper bot is available.');
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		process.exit(1);
 	});
 
 }
 catch (err) {
-	console.log(err);
+	console.trace(err);
 }

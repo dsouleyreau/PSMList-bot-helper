@@ -108,7 +108,7 @@ ship.get('/id/:ship', (req, res) => {
 	})
 	.catch( err => {
 		// error will be an Error if one occurred during the query
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -125,7 +125,7 @@ ship.get('/name/:ship', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -158,7 +158,7 @@ fort.get('/id/:fort', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -175,7 +175,7 @@ fort.get('/name/:fort', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -208,7 +208,7 @@ crew.get('/id/:crew', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -225,7 +225,7 @@ crew.get('/name/:crew', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -258,7 +258,7 @@ treasure.get('/id/:treasure', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -275,7 +275,7 @@ treasure.get('/name/:treasure', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -310,7 +310,7 @@ event_.get('/id/:event', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});*/
 });
@@ -329,7 +329,7 @@ event_.get('/name/:event', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});*/
 });
@@ -344,7 +344,7 @@ api.get('/faction', (req, res) => {
 		res.json(results);
 	})
 	.catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -359,7 +359,7 @@ api.get('/extension', (req, res) => {
 		res.json(results);
 	})
     .catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -374,7 +374,7 @@ api.get('/rarity', (req, res) => {
 		res.json(results);
 	})
     .catch( err => {
-		console.log(err);
+		console.trace(err);
 		res.json({error: err});
 	});
 });
@@ -389,6 +389,6 @@ app.listen(8080, () => {
 
 process.on('exit', () => pool.end( err => {
     // all connections in the pool have ended
-	console.log(err);
+	console.trace(err);
 }));
 

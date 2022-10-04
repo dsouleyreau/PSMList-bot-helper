@@ -49,7 +49,7 @@ function bulkApiRequest(...optionsList){
 			}
 		}
 		catch (err) {
-			console.log(err);
+			console.trace(err);
 		}
 	}
 	return Promise.all(promises).then((values) => values.flat() );
