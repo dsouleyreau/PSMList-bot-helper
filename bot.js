@@ -76,6 +76,26 @@ bot.on("message", (message) => {
 	}
 	message.content = message.content.toLowerCase();
 
+	// if send content is a string, embed it
+	const send = message.channel.send;
+	message.channel.send = function(content, options) {
+		if (typeof content === 'string') {
+			return send.call(
+				message.channel,
+				new Discord.MessageEmbed()
+					.setDescription(content),
+				options
+			);
+		}
+		else {
+			return send.call(
+				message.channel,
+				content,
+				options
+			);
+		}
+	}
+
 	// remove the prefix from the message
 	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str')
 	// replace alternative apostrophes for the most widely used one

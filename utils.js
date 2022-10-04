@@ -56,15 +56,12 @@ function bulkApiRequest(...optionsList){
 }
 
 function allHelp(hasManageMessagesPermission) {
-	const help = new Discord.MessageEmbed();
-	help.description = 
-		'Available commands:\n' +
-		['ping', 'search', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities']
+	return 'Available commands:\n' +
+		['ping', 'search', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
 			.reduce((accu, command) => accu + ' \u200b \u200b * `' + prefix + command + '`\n', '')
 		+ (hasManageMessagesPermission ? ' \u200b \u200b - `' + prefix + 'purge`\n' : '') + '\n' +
 		`Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.\n` +
 		'For further help, please check the [documentation](https://psmlist.com/public/blog/documentation_psmlisthelper) on psmlist.com.';
-	return help;
 }
 
 const Discord = require('discord.js');
