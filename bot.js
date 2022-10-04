@@ -8,17 +8,17 @@
 
 // imports
 const Discord = require( 'discord.js' ),
+	  config = require('./config'),
+	  prefix = config.prefix.toLowerCase(),
 	  bot = new Discord.Client({
 		  presence: {
 		  	  status: 'online',
 				  activity: {
-				  name: 'psm help',
+				  name: `${prefix} help`,
 				  type: 'PLAYING',
 			  },
 		  }
 	  }),
-	  config = require('./config'),
-	  prefix = config.prefix.toLowerCase(),
 	  sanitizer = require('sanitize')(),
 	  { apiRequest, loadData, allHelp } = require('./utils.js');
 
