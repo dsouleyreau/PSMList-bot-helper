@@ -114,12 +114,10 @@ bot.on("message", (message) => {
 	switch (command) {
 
 		case 'help' :
-			const help = sanitizer.value(args[0], 'str');
+			const helpCommand = sanitizer.value(args[0], 'str');
 			let helpMessage = '';
-			switch (help) {
-				case 'ping':
-					helpMessage = 'Test your ping for fun!';
-					break;
+			let helpTitle = '';
+			switch (helpCommand) {
 				case 'search':
 					helpMessage =
 						`Type \`${prefix}search\` to be redirected to the website\n` +
@@ -192,14 +190,22 @@ bot.on("message", (message) => {
 				default:
 					helpMessage = allHelp(hasManageMessagesPermission);
 			}
-			if (['search', 'ship', 'fort', 'crew', 'treasure'].includes(help)) {
+			if (['search', 'ship', 'fort', 'crew', 'treasure'].includes(helpCommand)) {
 				helpMessage += '\n\nID research has a permissive syntax:\n' +
 					` * \`${prefix}extensions\` shows original, community and WizKids short names to use as a prefix\n` +
 					' * it is not case sensitive -> PotCC = potcc = POTCC\n' +
 					' * leading zeros are optional -> oe001 = oe01 = oe1'
 			}
 
-			message.channel.send(helpMessage);
+			if (helpTitle === '') {
+				helpTitle = helpCommand;
+			}
+
+			message.channel.send(
+				new Discord.MessageEmbed()
+					.setTitle(helpTitle)
+					.setDescription(helpMessage)
+			);
 			break;
 
 		case 'search' :
