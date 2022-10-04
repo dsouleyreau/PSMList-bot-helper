@@ -126,9 +126,20 @@ async function loadData(type) {
 	return exports;
 }
 
+function outputSimulatedCost(type, masts, cargo, speed, cannons){
+	const total = masts + cargo + speed + cannons;
+
+	return new Discord.MessageEmbed()
+		.setTitle(`${type === 'udc' ? 'UDC': 'SimCost'} points`)
+		.setURL(`https://psmlist.com/public/${type}_calculator`)
+		.setDescription(`${emojis.masts} ${masts} ${emojis.cargo} ${cargo} ${emojis.speed} ${speed} ${emojis.cannon} ${cannons}`)
+		.addField("Total", total.toFixed(1))
+}
+
 module.exports = {
 	apiRequest,
 	bulkApiRequest,
 	loadData,
 	allHelp,
+	outputSimulatedCost
 }

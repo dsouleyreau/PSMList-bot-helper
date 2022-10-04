@@ -20,7 +20,7 @@ const Discord = require( 'discord.js' ),
 		  }
 	  }),
 	  sanitizer = require('sanitize')(),
-	  { apiRequest, loadData, allHelp } = require('./utils.js');
+	  { apiRequest, loadData, allHelp, outputSimulatedCost } = require('./utils.js');
 
 // dynamic / async imports
 let   /*factions,*/ factionsEmbed,
@@ -162,7 +162,24 @@ bot.on("message", (message) => {
 					helpMessage = 'List of extensions as flag, full name, short name, community short name and WizKids short name.';
 					break;
 				case 'rarities':
-					helpMessage = 'List of rarities with their color';
+					helpMessage = 'List of rarities with their color.';
+					break;
+				case 'udc':
+				case 'simcost':
+					helpTitle = helpCommand === 'udc' ? 'UDC': 'SimCost';
+					helpMessage = `Calculates the point value of a ship based on the [${helpTitle}](https://psmlist.com/public/${helpCommand}_calculator) algorithm.
+
+					\`${prefix}${helpCommand} <masts> <cargo> <speed> <cannons>\`
+					
+					\`speed\` is a list of speed letters (S, L, D, T), with or without a + sign in between.
+					\`cannons\` is a list of cannons dice (1 to 6) and range (S or L), with or without a space in between.
+					Lowercase letters are supported.
+					
+					Ex: \`${prefix}${helpCommand} 3 5 SL 2S3L2S\`
+					 or \`${prefix}${helpCommand} 3 5 s+l 2s 3l 2s\``;
+					break;
+				case 'ping':
+					helpMessage = 'Test your ping for fun!';
 					break;
 				case 'purge':
 					if (hasManageMessagesPermission) {
@@ -392,6 +409,91 @@ bot.on("message", (message) => {
 			// calculate time taken to process this message
 			const timeTaken = Date.now() - message.createdTimestamp - timeOffset;
 			message.reply(`I'm alive! Ping: ${timeTaken}ms.`);
+			break;
+
+		case 'udc':
+		case 'simcost':
+			const matches = args.join(' ').toUpperCase().match(/([0-9]|10) ([0-9]|10) ((?:[SLDT]\+?)+) ((?:[1-6](?:S|L) ?)+)/);
+			
+			if (!matches) {
+				return message.channel.send(`Wrong input format.\nType \`${prefix}help ${command}\` if needed.`)
+			}
+
+            const masts = matches[1];
+            const cargo = matches[2];
+            const speed = matches[3].replace(/\+| /g, '');
+            const cannons = matches[4].replace(/ /g, '');
+
+			if (command === 'udc') {
+				// Masts
+				const udc_masts = masts > 2 ? masts - 2 : 0;
+
+				// Cargo
+				const udc_cargo = cargo > 2 ? cargo - 2 : 0;
+
+				// Speed
+				const udc_speed = (3*((speed.match(/L/g) || []).length)) + (2*((speed.match(/S/g) || []).length));
+
+				// Cannons
+				const cannons_arr = cannons.match(/.{2}/g); // cuts the string into 2-char-long segments
+				const udc_cannons = !cannons_arr ? 0 :
+					cannons_arr.reduce((total, cannon) => {
+						// 6 5 4 => free
+						if (cannon[0] > 3) {
+							return total;
+						}
+						// 3L 2L 1L 2S 1S => +1 point
+						if (cannon[0] < 3) {
+							return total + 1;
+						}
+						// 3S => free
+						if (cannon[1] === "S") {
+							return total;
+						}
+						// 3L => +1 point
+						return total + 1;
+					}, 0);
+				
+				return message.channel.send(
+					outputSimulatedCost(command, udc_masts, udc_cargo, udc_speed, udc_cannons)
+				);
+			}
+			else if (command === 'simcost') {
+				function round(value) {
+					return Math.round(value * 100.0) / 100.0;
+				}
+				// Masts
+				const simcost_masts = round(masts * 0.7);
+	
+				// Cargo
+				const simcost_cargo = round(cargo * 0.5);
+	
+				// Speed
+				const simcost_speed = round(
+					(3*((speed.match(/L/g) || []).length)) + (2*((speed.match(/S/g) || []).length))
+					* 0.2
+				);
+	
+				// Cannons
+				let simcost_cannons = 0;
+				let simcost_cannons_unit = 0;
+				const cannons_arr = cannons.match(/.{2}/g); // cuts the string into 2-char-long segments
+				if (cannons_arr) {
+					cannons_arr.forEach((cannon) => {
+						//  6 - cannonvalue = score per cannon. And 1 point per L cannon
+						simcost_cannons += 6 - cannon[0];
+						if (cannon[1] === "L") {
+							simcost_cannons_unit ++;
+						}
+					});
+				}
+				simcost_cannons = round(simcost_cannons * 0.3)
+				simcost_cannons_unit = round(simcost_cannons_unit * 0.2)
+	
+				return message.channel.send(
+					outputSimulatedCost(command, simcost_masts, simcost_cargo, simcost_speed, simcost_cannons + simcost_cannons_unit)
+				);
+			}
 			break;
 
 		case 'purge' :
