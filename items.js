@@ -1,13 +1,13 @@
-const Discord = require('discord.js'),
-      { emojis } = require('./config');
 
-// take arguments from previous imports
-module.exports = (factions, extensions, rarities) => {
-    return {
-        // create embed depending on type and number
-        buildItemsEmbed(type, items, input) {
-            let title = type.charAt(0).toUpperCase() + type.slice(1) + 's listed as: ' + input;
-            const fields = [];
+const Discord = require('discord.js'),
+    { emojis } = require('./config'),
+    dbdata = require('./dbdata.js');
+
+module.exports = {
+    // create embed depending on type and number
+    buildItemsEmbed(type, items, input) {
+        let title = type.charAt(0).toUpperCase() + type.slice(1) + 's listed as: ' + input;
+        const fields = [];
 
             // pack results in columns of 8
             for ( let i = 0; i < items.length; i += 8 ) {

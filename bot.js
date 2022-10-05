@@ -7,60 +7,37 @@
  */
 
 // imports
-const Discord = require( 'discord.js' ),
-	  config = require('./config'),
-	  prefix = config.prefix.toLowerCase(),
-	  bot = new Discord.Client({
-		  presence: {
-		  	  status: 'online',
-				  activity: {
-				  name: `${prefix} help`,
-				  type: 'PLAYING',
-			  },
-		  }
-	  }),
-	  sanitizer = require('sanitize')(),
-	  { apiRequest, loadData, allHelp, outputSimulatedCost } = require('./utils.js');
+const Discord = require('discord.js'),
+	config = require('./config'),
+	prefix = config.prefix.toLowerCase(),
+	bot = new Discord.Client({
+		presence: {
+			status: 'online',
+			activity: {
+				name: `${prefix} help`,
+				type: 'PLAYING',
+			},
+		}
+	}),
+	sanitizer = require('sanitize')(),
+	{ apiRequest, allHelp, outputSimulatedCost } = require('./utils.js'),
+	{ buildItemEmbed, buildItemsEmbed, createStaticEmbeds } = require('./items.js');
 
-// dynamic / async imports
-let   /*factions,*/ factionsEmbed,
-	extensions, extensionsEmbed,
-	/*rarities,*/ raritiesEmbed,
-	buildItemEmbed, buildItemsEmbed;
-
-Promise.all([
-	// parallel fetching of factions, extensions and rarity instead of serial fetching
-	loadData('faction'),
-	loadData('extension'),
-	loadData('rarity')
-])
-.then((modules) => {
-	const [ faction, extension, rarity ] = modules,
-		  items = require('./items.js')(faction.factions, extension.extensions, rarity.rarities);
-		  factionsEmbed = faction.factionsEmbed,
-		  extensionsEmbed = extension.extensionsEmbed,
-		  raritiesEmbed = rarity.raritiesEmbed,
-		  buildItemEmbed = items.buildItemEmbed;
-		  buildItemsEmbed = items.buildItemsEmbed;
-		  extensions = extension.extensions
-})
-.catch( err => {
-	console.trace(err);
-	process.exit(1);
-});
-
-// catch errors
-try {
+const factionsEmbed = () => createStaticEmbeds('faction');
+const extensionsEmbed = () => createStaticEmbeds('extension');
+const raritiesEmbed = () => createStaticEmbeds('rarity');
+const keywordCategoriesEmbed = () => createStaticEmbeds('keyword/category');
+const keywordTargetsEmbed = () => createStaticEmbeds('keyword/target');
 
 // calculate hosted server offset with online time API
 let timeOffset = 0;
 setInterval(function setTimeOffset() {
 	apiRequest('http://worldtimeapi.org/api/ip')
-	.then( ({ datetime }) => {
-		timeOffset = Date.now() - new Date(datetime);
-	}).catch(err => {
-		console.trace(err);
-	});
+		.then(({ datetime }) => {
+			timeOffset = Date.now() - new Date(datetime);
+		}).catch(err => {
+			console.trace(err);
+		});
 	return setTimeOffset;
 }(), 2 * 3600 * 1000);
 
@@ -69,18 +46,18 @@ const psmDataTypes = ['ship', 'fort', 'crew', 'treasure', 'keyword'];
 // bot behavior
 bot.on("message", (message) => {
 	// stop if the message is from a bot
-	if ( message.author.bot ) {
+	if (message.author.bot) {
 		return;
 	}
 	// stop if message is too small or prefix not the one this bot expects
-	if ( message.content.length < 3 || message.content.slice(0, prefix.length).toLowerCase() !== prefix ) {
+	if (message.content.length < 3 || message.content.slice(0, prefix.length).toLowerCase() !== prefix) {
 		return;
 	}
 	message.content = message.content.toLowerCase();
 
 	// if send content is a string, embed it
 	const send = message.channel.send;
-	message.channel.send = function(content, options) {
+	message.channel.send = function (content, options) {
 		if (typeof content === 'string') {
 			return send.call(
 				message.channel,
@@ -100,7 +77,7 @@ bot.on("message", (message) => {
 
 	// remove the prefix from the message
 	const commandBody = sanitizer.value(message.content.slice(prefix.length), 'str')
-	// replace alternative apostrophes for the most widely used one
+		// replace alternative apostrophes for the most widely used one
 		.replace(/‘|’|`/g, "'");
 	// split the message into pieces separated by a 'space'
 	const args = commandBody.replace(/ +/g, ' ').split(' ');
@@ -115,7 +92,7 @@ bot.on("message", (message) => {
 
 	switch (command) {
 
-		case 'help' :
+		case 'help':
 			const helpCommand = sanitizer.value(args[0], 'str');
 			let helpMessage = '';
 			let helpTitle = '';
@@ -169,7 +146,7 @@ bot.on("message", (message) => {
 					break;
 				case 'udc':
 				case 'simcost':
-					helpTitle = helpCommand === 'udc' ? 'UDC': 'SimCost';
+					helpTitle = helpCommand === 'udc' ? 'UDC' : 'SimCost';
 					helpMessage = `Calculates the point value of a ship based on the [${helpTitle}](https://psmlist.com/public/blog/documentation_${helpCommand}) algorithm.
 
 					\`${prefix}${helpCommand} <masts> <cargo> <speed> <cannons>\`
@@ -213,7 +190,7 @@ bot.on("message", (message) => {
 			);
 			break;
 
-		case 'search' :
+		case 'search':
 			if (args.length === 0) {
 				message.channel.send('More content is available at https://psmlist.com');
 			} else {
@@ -253,7 +230,7 @@ bot.on("message", (message) => {
 					apiRequest(`${config.apiURI}/treasure/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 					apiRequest(`${config.apiURI}/keyword/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 				])
-					.then( data => {
+					.then(data => {
 						// create an associative array of data by item type
 						const dataByType = {};
 						let types = 0;
@@ -263,7 +240,7 @@ bot.on("message", (message) => {
 							// avoid creating an empty embed if there is no value for this item type
 							if (array.length > 0) {
 								dataByType[type] = array;
-								types ++;
+								types++;
 							}
 						}
 
@@ -277,32 +254,32 @@ bot.on("message", (message) => {
 							const isSingleEmbed =
 								// more than one type or more than two items means multi embed
 								types > 1
-								|| length > 2 ? false :
-								// one item or two which match type specific conditions
-								(
-									length === 1
-									||
+									|| length > 2 ? false :
+									// one item or two which match type specific conditions
 									(
-										// crew from the same card
-										(
-											dataByType['crew'] &&
-											(
-												dataByType['crew'][0].idextension === dataByType['crew'][1].idextension
-												&& dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]
-											)
-										)
+										length === 1
 										||
-										// ships from both non Unlimited and Unlimited extensions
 										(
-											dataByType['ship'] &&
+											// crew from the same card
 											(
-												extensions[dataByType['ship'][0].idextension].short + 'U' === extensions[dataByType['ship'][1].idextension].short
-												|| extensions[dataByType['ship'][0].idextension].short === extensions[dataByType['ship'][1].idextension].short + 'U'
+												dataByType['crew'] &&
+												(
+													dataByType['crew'][0].idextension === dataByType['crew'][1].idextension
+													&& dataByType['crew'][0].numid.match('[^a]+')[0] === dataByType['crew'][1].numid.match('[^b]+')[0]
+												)
+											)
+											||
+											// ships from both non Unlimited and Unlimited extensions
+											(
+												dataByType['ship'] &&
+												(
+													extensions[dataByType['ship'][0].idextension].short + 'U' === extensions[dataByType['ship'][1].idextension].short
+													|| extensions[dataByType['ship'][0].idextension].short === extensions[dataByType['ship'][1].idextension].short + 'U'
+												)
 											)
 										)
-									)
-								);
-							
+									);
+
 							// keep only the ship not from Unlimited extension
 							if (isSingleEmbed && dataByType['ship'] && dataByType['ship'].length === 2) {
 								dataByType['ship'] = [
@@ -318,27 +295,27 @@ bot.on("message", (message) => {
 									// create detailed embed
 									const embeds = buildItemEmbed(type, array);
 									message.channel.send(embeds[0])
-									.catch(err => {
-										console.trace(err);
-										console.log('Error with the research: ' + input);
-										// message.channel.send('Internal error.');
-									});
-									// add second embed if its a crew from the same card
-									if (embeds[1]) {
-										message.channel.send(embeds[1])
 										.catch(err => {
 											console.trace(err);
 											console.log('Error with the research: ' + input);
 											// message.channel.send('Internal error.');
 										});
+									// add second embed if its a crew from the same card
+									if (embeds[1]) {
+										message.channel.send(embeds[1])
+											.catch(err => {
+												console.trace(err);
+												console.log('Error with the research: ' + input);
+												// message.channel.send('Internal error.');
+											});
 									}
 								} else {
 									message.channel.send(buildItemsEmbed(type, array, input))
-									.catch(err => {
-										console.log('Too many results with the research: ' + input);
-										console.trace(err);
-										message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
-									});
+										.catch(err => {
+											console.log('Too many results with the research: ' + input);
+											console.trace(err);
+											message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
+										});
 								}
 							}
 						}
@@ -358,55 +335,73 @@ bot.on("message", (message) => {
 			let input = '', searchType = '';
 			// get search type and remove it from args for future processing
 			try {
-				searchType = command !== 'keyword' ? sanitizer.value(args.shift(), 'str').toLowerCase() : 'name';
+				searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
 			} catch (e) {
 				console.log(`Error with command '${message.content}'`);
+				return message.channel.send('Failed to process research. Please refine your inputs.');
 			}
-			if (searchType === 'id') {
-				if (args.length > 1) {
-					return message.channel.send('Please provide only one ID per research.');
+			if (command === 'keyword') {
+				switch (searchType) {
+					case 'categories':
+						return message.channel.send(keywordCategoriesEmbed());
+						break;
+					case 'targets':
+						return message.channel.send(keywordTargetsEmbed());
+						break;
+					default:
+						return message.channel.send('Failed to process research. Please refine your inputs.');
 				}
-				input = sanitizer.value(args[0], 'str');
-				if (input.length > 10) {
-					return message.channel.send('ID is limited to 10 characters.');
-				}
-			} else if (searchType === 'name' || searchType === 'text') {
-				input = sanitizer.value(args.join(' '), 'str');
-				if (input.replace(' ', '').length < 3) {
-					return message.channel.send('Name needs at least 3 characters.');
-				}
-				if (input.length > 30) {
-					return message.channel.send('Name is limited to 30 characters.');
-				}
-			} else {
-				return message.channel.send(`Please indicate if you search by \`name\` or \`id\`.\nType \`${prefix}help\` if needed.`);
+			}
+			
+			switch (searchType) {
+				case 'id':
+					if (args.length > 1) {
+						return message.channel.send('Please provide only one ID per research.');
+					}
+					input = sanitizer.value(args[0], 'str');
+					if (input.length > 10) {
+						return message.channel.send('ID is limited to 10 characters.');
+					}
+					break;
+				case 'name':
+				case 'text':
+					input = sanitizer.value(args.join(' '), 'str');
+					if (input.replace(' ', '').length < 3) {
+						return message.channel.send('Name needs at least 3 characters.');
+					}
+					if (input.length > 30) {
+						return message.channel.send('Name is limited to 30 characters.');
+					}
+					break;
+				default:
+					return message.channel.send(`Please indicate if you search by \`name\` or \`id\`.\nType \`${prefix}help\` if needed.`);
 			}
 
 			apiRequest(`${config.apiURI}/${command}/${searchType === 'id' ? 'id' : 'name'}/${input}`)
-				.then( data => {
+				.then(data => {
 					if (data.length === 0) {
 						message.channel.send(`${searchType === 'id' ? 'ID' : 'Name'} provided did not match any type.`)
 					} else if (data.length === 1 || (command === 'crew' && data.length === 2 && data[0].idextension === data[1].idextension && data[0].numid.match('[^a]+')[0] === data[1].numid.match('[^b]+')[0])) {
 						const embeds = buildItemEmbed(command, data);
 						message.channel.send(embeds[0])
-						.catch( err => {
-							console.log('Error line 305: ' + input);
-							console.trace(err);
-						});
-						if (embeds[1]) {
-							message.channel.send(embeds[1])
-							.catch( err => {
-								console.log('Error with input: ' + input);
+							.catch(err => {
+								console.log('Error line 305: ' + input);
 								console.trace(err);
 							});
+						if (embeds[1]) {
+							message.channel.send(embeds[1])
+								.catch(err => {
+									console.log('Error with input: ' + input);
+									console.trace(err);
+								});
 						}
 					} else {
 						message.channel.send(buildItemsEmbed(command, data, input))
-						.catch( err => {
-							console.log('Too many results with the research: ' + input);
-							console.trace(err);
-							message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
-						});
+							.catch(err => {
+								console.log('Too many results with the research: ' + input);
+								console.trace(err);
+								message.channel.send('Unable to generate response because of too many results to print. Please refine your search terms to reduce it.');
+							});
 					}
 				})
 				.catch(err => {
@@ -415,19 +410,19 @@ bot.on("message", (message) => {
 				});
 			break;
 
-		case 'factions' :
-			message.channel.send(factionsEmbed);
+		case 'factions':
+			message.channel.send(factionsEmbed());
 			break;
 
-		case 'extensions' :
-			message.channel.send(extensionsEmbed);
+		case 'extensions':
+			message.channel.send(extensionsEmbed());
 			break;
 
-		case 'rarities' :
-			message.channel.send(raritiesEmbed);
+		case 'rarities':
+			message.channel.send(raritiesEmbed());
 			break;
 
-		case 'ping' :
+		case 'ping':
 			// calculate time taken to process this message
 			const timeTaken = Date.now() - message.createdTimestamp - timeOffset;
 			message.reply(`I'm alive! Ping: ${timeTaken}ms.`);
@@ -436,15 +431,15 @@ bot.on("message", (message) => {
 		case 'udc':
 		case 'simcost':
 			const matches = args.join(' ').toUpperCase().match(/([0-9]|10) ([0-9]|10) ((?:[SLDT]\+?)+) ((?:[1-6](?:S|L) ?)+)/);
-			
+
 			if (!matches) {
 				return message.channel.send(`Wrong input format.\nType \`${prefix}help ${command}\` if needed.`)
 			}
 
-            const masts = matches[1];
-            const cargo = matches[2];
-            const speed = matches[3].replace(/\+| /g, '');
-            const cannons = matches[4].replace(/ /g, '');
+			const masts = matches[1];
+			const cargo = matches[2];
+			const speed = matches[3].replace(/\+| /g, '');
+			const cannons = matches[4].replace(/ /g, '');
 
 			if (command === 'udc') {
 				// Masts
@@ -454,7 +449,7 @@ bot.on("message", (message) => {
 				const udc_cargo = cargo > 2 ? cargo - 2 : 0;
 
 				// Speed
-				const udc_speed = (3*((speed.match(/L/g) || []).length)) + (2*((speed.match(/S/g) || []).length));
+				const udc_speed = (3 * ((speed.match(/L/g) || []).length)) + (2 * ((speed.match(/S/g) || []).length));
 
 				// Cannons
 				const cannons_arr = cannons.match(/.{2}/g); // cuts the string into 2-char-long segments
@@ -475,7 +470,7 @@ bot.on("message", (message) => {
 						// 3L => +1 point
 						return total + 1;
 					}, 0);
-				
+
 				return message.channel.send(
 					outputSimulatedCost(command, udc_masts, udc_cargo, udc_speed, udc_cannons)
 				);
@@ -486,16 +481,16 @@ bot.on("message", (message) => {
 				}
 				// Masts
 				const simcost_masts = round(masts * 0.7);
-	
+
 				// Cargo
 				const simcost_cargo = round(cargo * 0.5);
-	
+
 				// Speed
 				const simcost_speed = round(
-					(3*((speed.match(/L/g) || []).length)) + (2*((speed.match(/S/g) || []).length))
+					(3 * ((speed.match(/L/g) || []).length)) + (2 * ((speed.match(/S/g) || []).length))
 					* 0.2
 				);
-	
+
 				// Cannons
 				let simcost_cannons = 0;
 				let simcost_cannons_unit = 0;
@@ -505,20 +500,20 @@ bot.on("message", (message) => {
 						//  6 - cannonvalue = score per cannon. And 1 point per L cannon
 						simcost_cannons += 6 - cannon[0];
 						if (cannon[1] === "L") {
-							simcost_cannons_unit ++;
+							simcost_cannons_unit++;
 						}
 					});
 				}
 				simcost_cannons = round(simcost_cannons * 0.3)
 				simcost_cannons_unit = round(simcost_cannons_unit * 0.2)
-	
+
 				return message.channel.send(
 					outputSimulatedCost(command, simcost_masts, simcost_cargo, simcost_speed, simcost_cannons + simcost_cannons_unit)
 				);
 			}
 			break;
 
-		case 'purge' :
+		case 'purge':
 			// check permissions
 			if (!hasManageMessagesPermission) {
 				return message.channel.send('You don\'t have permissions for that!');
@@ -541,32 +536,30 @@ bot.on("message", (message) => {
 			message.delete();
 
 			message.channel.bulkDelete(number, true)
-			.catch(err => {
-				console.trace(err);
-				message.channel.send('Failed to delete old messages!');
-			});
+				.catch(err => {
+					console.trace(err);
+					message.channel.send('Failed to delete old messages!');
+				});
 			break;
 
-		default :
+		default:
 			message.channel.send(`Unable to understand your request. Type ${prefix}help to show the list of available commands.`);
 			break;
 	}
 });
 
-
-
 /* bot.on('ready', async () => {
-    // const guild = bot.guilds.cache.find(guild => guild.name === "Pirates Constructible Strategy Game");
-    const guild = bot.guilds.cache.find(guild => guild.name === "[DEV] PsmListHelper");
-
-    if (!guild) {
-        return;
-    }
-    // const channel = guild.channels.cache.find(channel => channel.name === "bots")
-    const channel = guild.channels.cache.find(channel => channel.name === "bot-dev")
-
+	// const guild = bot.guilds.cache.find(guild => guild.name === "Pirates Constructible Strategy Game");
+	const guild = bot.guilds.cache.find(guild => guild.name === "[DEV] PsmListHelper");
+	
+	if (!guild) {
+		return;
+	}
+	// const channel = guild.channels.cache.find(channel => channel.name === "bots")
+	const channel = guild.channels.cache.find(channel => channel.name === "bot-dev")
+	
 	if (!channel) {
-	    return;
+		return;
 	}
 	
 	channel.send(
@@ -581,16 +574,12 @@ bot.on("message", (message) => {
 	);
 }); */
 
-bot.login(require('./secret.js').BOT_TOKEN)
-	.then( () => {
+bot
+	.login(require('./secret.js').BOT_TOKEN)
+	.then(() => {
 		console.log('PSM Helper bot is available.');
 	})
-	.catch( err => {
+	.catch(err => {
 		console.trace(err);
 		process.exit(1);
 	});
-
-}
-catch (err) {
-	console.trace(err);
-}

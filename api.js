@@ -43,7 +43,7 @@ function poolQuery(query, args){
 
 let extensions, extensionsRegex;
 require('./utils').loadData('extension').then( imports => {
-	extensions = imports.extensions;
+	extensions = imports;
     const extensionShorts = [];
     Object.values(extensions).forEach((extension) => {
     	extensionShorts.push(extension.short)
@@ -53,9 +53,12 @@ require('./utils').loadData('extension').then( imports => {
 		extensionShorts.push(extension.shortwizkids.toUpperCase())
 	});
 	extensionShorts.sort().reverse();
-	// console.log(extensionShorts)
-	extensionsRegex = '(' + extensionShorts.reduce((accu, extension, index) => accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), '') + ')';
-	// console.log(extensionsRegex);
+	extensionsRegex = '(' +
+		extensionShorts.reduce(
+			(accu, extension, index) =>
+				accu + extension + (index < extensionShorts.length - 1 ? '|' : ''), ''
+		) +
+	')';
 });
 
 app.use(cors())

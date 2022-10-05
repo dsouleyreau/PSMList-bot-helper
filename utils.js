@@ -1,12 +1,11 @@
 
 const http  = require('http'),
 	  https = require('https'),
-	  config = require('./config.js'),
-	  { emojis, prefix } = config;
+	  { emojis, prefix, apiURI } = require('./config.js');
 
-function apiRequest(url, options, data) {
+function apiRequest(url, options = {}, data) {
 	return new Promise( (resolve, reject) => {
-		const req = (url.match(/https/) ? https : http)
+		const req = (url.match(/^https/) ? https : http)
 			.request(url, options, (res) => {
 				let output = '';
 				res.on('data', data => {
