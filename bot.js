@@ -551,6 +551,22 @@ bot.on("message", (message) => {
 bot.login(require('./secret.js').BOT_TOKEN)
 	.then( () => {
 		console.log('PSM Helper bot is available.');
+
+		const channel = bot.channels.cache.find(channel => channel.name === "bot-dev")
+
+		if (channel) {
+			channel.send(
+				new Discord.MessageEmbed()
+					.setTitle('🤖\u200b Helper bot update\u200b 🤖')
+					.setDescription(`
+						<:1L:849023175584776222> You can now ask the bot to calculate point cost based on UDC or SimCost. Type \`psm help udc\` or \`psm help simcost\` to get detailed instructions or visit the [online documentation](https://psmlist.com/public/blog/documentation_psmlisthelper) for more info
+						<:1S:849023175937490975> In the case the result of a search only outputs two ships and one is for example from RV and the other one from RVU, it will display only the RV one instead of the list. Works with RV, RVU, BC, BCU, SM and SMU.
+						<:1S:849023175937490975> The search engine will turn any of the weird apostrophes like ‘ into ' before searching, so you won't be penalized if your phone only has different apostrophes available.
+						<:1S:849023175937490975> More improvemets and bugfixes (see the [changelog](https://psmlist.com/public/blog/psmlist_helper_0_4_0))
+					`)
+			);
+			console.log('bot-dev sent');
+		}
 	})
 	.catch( err => {
 		console.trace(err);
