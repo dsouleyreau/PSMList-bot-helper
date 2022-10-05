@@ -26,7 +26,7 @@ module.exports = {
             }
             else {
                 output = items.slice(i, i + 8).reduce((accu, item) =>
-                    accu + ' \u200b \u200b ' + '[' + item.shortname + '](https://www.psmlist.com/public/keyword/detail?kw=' + item.shortname + ') \n'
+                    accu + ' \u200b \u200b ' + '[' + item.shortname + '](https://www.psmlist.com/public/keyword/detail?kw=' + encodeURI(item.shortname) + ') \n'
                     , '');
             }
             fields.push({ name: title, value: output, inline: true });
@@ -51,7 +51,7 @@ module.exports = {
             return [
                 itemEmbed
                     .setTitle(item.shortname)
-                    .setURL(`https://www.psmlist.com/public/keyword/detail?kw=${item.shortname}`)
+                    .setURL(`https://www.psmlist.com/public/keyword/detail?kw=${encodeURI(item.shortname)}`)
                     .addFields([
                         { name: 'Cost', value: item.cost, inline: true },
                         { name: 'Category', value: dbdata.kw_categories[item.idkeywordtype].name, inline: true },
