@@ -375,7 +375,29 @@ keyword.get('/name/:keyword', (req, res) => {
 });
 
 keyword.get('/id/:keyword', (req, res) => {
-	res.json([])
+	res.json([]);
+});
+
+keyword.get('/category', (req, res) => {
+    poolQuery("SELECT * FROM kw_category;")
+    .then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.trace(err);
+		res.json({error: err});
+	});
+});
+
+keyword.get('/target', (req, res) => {
+    poolQuery("SELECT * FROM kw_target;")
+    .then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.trace(err);
+		res.json({error: err});
+	});
 });
 
 
