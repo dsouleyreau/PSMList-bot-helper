@@ -102,38 +102,43 @@ bot.on("message", (message) => {
 						`Type \`${prefix}search\` to be redirected to the website\n` +
 						`\`${prefix}search id <id>\` or \`${prefix}search name <name>\` to research in searchList database\n` +
 						`Ex: \`${prefix}search id oe001\``
-					;
+						;
 					break;
 				case 'ship':
 					helpMessage =
 						'Shows information about a ship based on its `name` or `id`.\n' +
 						`\`${prefix}ship id <id>\` or \`${prefix}ship name <name>\`\n` +
 						`Ex: \`${prefix}ship id oe059\``
-					;
+						;
 					break;
 				case 'fort':
 					helpMessage =
 						'Shows information about a fort based on its `name` or `id`.\n' +
 						`\`${prefix}fort id <id>\` or \`${prefix}fort name <name>\`\n` +
 						`Ex: \`${prefix}fort rvu065\``
-					;
+						;
 					break;
 				case 'crew':
 					helpMessage =
 						'Shows information about a crew based on its `name` or `id`.\n' +
 						`\`${prefix}crew id <id>\` or \`${prefix}crew name <name>\`\n` +
 						`Ex: \`${prefix}crew ca063\``
-					;
+						;
 					break;
 				case 'keyword':
-					helpMessage = 'Shows the effect of the keyword';
+					helpMessage =
+						`
+							\`psm keyword name <name>\`: Shows the effect of the keyword
+							\`psm keyword categories\`: List of keyword categories
+							\`psm keyword targets\`: List of keyword targets
+						`;
 					break;
 				case 'treasure':
 					helpMessage =
 						'Shows information about a treasure based on its `name` or `id`.\n' +
 						`\`${prefix}treasure id <id>\` or \`${prefix}treasure name <name>\`\n` +
 						`Ex: \`${prefix}treasure rof209\``
-					;
+						;
 					break;
 				case 'factions':
 					helpMessage = 'List of factions with their flag.';

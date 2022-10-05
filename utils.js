@@ -66,61 +66,51 @@ function allHelp(hasManageMessagesPermission) {
 const Discord = require('discord.js');
 
 async function loadData(type) {
-	if (['faction', 'extension', 'rarity'].indexOf(type) === - 1) {
-		throw Error('Provided type is not recognized.\nPlease choose between "faction", "extension" or "rarity".');
-	}
-
-	let types = type + 's';
-	if (type === 'rarity') {
-		types = 'rarities';
-	}
-
 	const exports = {};
-	exports[types] = {};
+	
+	const data = await apiRequest(`${apiURI}/${type}`); // expected to throw error and quit process if api is unreachable
+	
+	if (!data) {
+		return;
+	}
 
-	let data = [];
-	data = await apiRequest(`${config.apiURI}/${type}`); // expected to throw error and quit process if api is unreachable
 	switch (type) {
 		case 'faction':
 			for (let { id, nameimg, defaultname } of data) {
 				if (id && nameimg && defaultname) {
-					exports.factions[id] = { nameimg, name: defaultname };
+					exports[id] = { nameimg, name: defaultname };
 				}
 			}
 			break;
 		case 'extension':
 			for (let { id, name, short, shortcommunity, shortwizkids } of data) {
 				if (id && name && short && shortwizkids) {
-					exports.extensions[id] = {name, short, shortcommunity, shortwizkids};
+					exports[id] = {name, short, shortcommunity, shortwizkids};
 				}
 			}
 			break;
 		case 'rarity':
 			for (let { id, colorhex, defaultname } of data) {
 				if (id && defaultname && colorhex){
-					exports.rarities[id] = { color: '#' + colorhex, name: defaultname};
+					exports[id] = { color: '#' + colorhex, name: defaultname};
+				}
+			}
+			break;
+		case 'keyword/category':
+			for (let { id, name } of data) {
+				if (id && name){
+					exports[id] = { name };
+				}
+			}
+			break;
+		case 'keyword/target':
+			for (let { id, name } of data) {
+				if (id && name){
+					exports[id] = { name };
 				}
 			}
 			break;
 	}
-	switch (type) {
-		case 'faction':
-			exports.factionsString = Object.values(exports.factions).reduce((output, faction) => output + config.emojis[faction.nameimg] + " \u200b " + faction.name + "\n", "");
-			break;
-		case 'extension':
-			exports.extensionsString = Object.values(exports.extensions).reduce((output, extension) => output + emojis[extension.short] + " \u200b " + extension.name + " - " + extension.short + (extension.shortcommunity ? " - " + extension.shortcommunity : '') + (extension.shortwizkids ? " - " + extension.shortwizkids : '') + "\n", "");
-			break;
-		case 'rarity':
-			exports.raritiesString = Object.values(exports.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name}\n`, "");
-			break;
-	}
-
-	exports[types + 'Embed'] = new Discord.MessageEmbed()
-		.setTitle(types.charAt(0).toUpperCase() + types.slice(1))
-		.setDescription(
-			exports[types + 'String']
-		)
-		.setFooter('Provided by Broken Arms Team');
 
 	return exports;
 }
