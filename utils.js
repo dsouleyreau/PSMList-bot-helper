@@ -57,7 +57,7 @@ function bulkApiRequest(...optionsList){
 
 function allHelp(hasManageMessagesPermission) {
 	return 'Available commands:\n' +
-		['ping', 'search', 'ship', 'fort', 'crew', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
+		['ping', 'search', 'ship', 'fort', 'crew', 'treasure', 'keyword', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
 			.reduce((accu, command) => accu + ' \u200b \u200b * `' + prefix + command + '`\n', '')
 		+ (hasManageMessagesPermission ? ' \u200b \u200b - `' + prefix + 'purge`\n' : '') + '\n' +
 		`Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.\n` +
