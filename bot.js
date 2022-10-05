@@ -550,7 +550,7 @@ bot.on("message", (message) => {
 
 
 
-bot.on('ready', async () => {
+/* bot.on('ready', async () => {
     // const guild = bot.guilds.cache.find(guild => guild.name === "Pirates Constructible Strategy Game");
     const guild = bot.guilds.cache.find(guild => guild.name === "[DEV] PsmListHelper");
 
@@ -574,7 +574,7 @@ bot.on('ready', async () => {
 				<:1S:849023175937490975> More improvemets and bugfixes (see the [changelog](https://psmlist.com/public/blog/psmlist_helper_0_4_0))
 			`)
 	);
-});
+}); */
 
 bot.login(require('./secret.js').BOT_TOKEN)
 	.then( () => {
