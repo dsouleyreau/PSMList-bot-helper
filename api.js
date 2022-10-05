@@ -75,8 +75,8 @@ api.use('/crew', crew);
 const treasure = express.Router();
 api.use('/treasure', treasure);
 
-const event_ = express.Router();
-api.use('/event', event_);
+const event = express.Router();
+api.use('/event', event);
 
 /*
  * /ship
@@ -284,11 +284,11 @@ treasure.get('/name/:treasure', (req, res) => {
  * /event
  */
 
-event_.get('/', (req, res) => {
+event.get('/', (req, res) => {
 	res.json({error: 'Not available!'});
 });
 
-event_.get('/id/:event', (req, res) => {
+event.get('/id/:event', (req, res) => {
 	res.json({error: 'Not implemented yet!'});
 
 	/*const eventID = req.params.event.substring(0, 10).toUpperCase();
@@ -315,7 +315,7 @@ event_.get('/id/:event', (req, res) => {
 	});*/
 });
 
-event_.get('/name/:event', (req, res) => {
+event.get('/name/:event', (req, res) => {
 	res.json({error: 'Not implemented yet!'});
 
 	/*const eventName = req.params.event.substring(0, 30).toUpperCase();
