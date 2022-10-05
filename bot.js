@@ -288,7 +288,7 @@ bot.on("message", (message) => {
 											)
 										)
 										||
-										// ships from both non unlimited and unlimited extensions
+										// ships from both non Unlimited and Unlimited extensions
 										(
 											dataByType['ship'] &&
 											(
@@ -298,7 +298,14 @@ bot.on("message", (message) => {
 										)
 									)
 								);
-
+							
+							// keep only the ship not from Unlimited extension
+							if (isSingleEmbed && dataByType['ship'] && dataByType['ship'].length === 2) {
+								dataByType['ship'] = [
+									!(extensions[dataByType['ship'][0].idextension].short.endsWith('U')) ?
+										dataByType['ship'][0] : dataByType['ship'][1]
+								]
+							}
 							// create one embed for each type of item
 							for (let type in dataByType) {
 								const array = dataByType[type];
