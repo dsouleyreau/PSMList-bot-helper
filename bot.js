@@ -58,6 +58,8 @@ setInterval(function setTimeOffset() {
 	apiRequest('http://worldtimeapi.org/api/ip')
 	.then( ({ datetime }) => {
 		timeOffset = Date.now() - new Date(datetime);
+	}).catch(err => {
+		console.trace(err);
 	});
 	return setTimeOffset;
 }(), 2 * 3600 * 1000);
