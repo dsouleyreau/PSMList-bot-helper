@@ -367,14 +367,14 @@ keyword.get('/id/:keyword', (req, res) => {
 });
 
 keyword.get('/name/:keyword', (req, res) => {
-	const keywordName = req.params.keyword.substring(0, 30).toUpperCase();
+	let keywordName = req.params.keyword.substring(0, 30).toUpperCase();
 
 	if ( keywordName.length === 0 || keywordName.length !== req.params.keyword.length) {
 		return res.json([]);
 	}
 
-	const regex = `${keywordName.replace(/[^A-Z]/g, '.*')}`;
-
+	keywordName = keywordName.replace(/\+/, '\\+').replace(' ', '.*');
+	
 	poolQuery("SELECT * FROM keyword WHERE shortname REGEXP ?;", formatExactRegex(keywordName))
 	.then( results => {
 		res.json(results);
