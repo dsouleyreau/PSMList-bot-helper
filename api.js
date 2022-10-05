@@ -84,6 +84,13 @@ api.use('/event', event);
 const keyword = express.Router();
 api.use('/keyword', keyword);
 
+function formatExactRegex(regex) {
+	if (regex.startsWith('"') && regex.endsWith('"')) {
+		regex = `^${regex.slice(1, -1)}$`;
+	}
+	return regex;
+}
+
 /*
  * /ship
  */
@@ -126,7 +133,7 @@ ship.get('/name/:ship', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE idtype != 2 AND name REGEXP ?;", shipName)
+	poolQuery("SELECT * FROM ship WHERE idtype != 2 AND name REGEXP ?;", formatExactRegex(shipName))
 	.then( results => {
 		res.json(results);
 	})
@@ -176,7 +183,7 @@ fort.get('/name/:fort', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE idtype = 2 AND name REGEXP ?;", fortName)
+	poolQuery("SELECT * FROM ship WHERE idtype = 2 AND name REGEXP ?;", formatExactRegex(fortName))
 	.then( results => {
 		res.json(results);
 	})
@@ -226,7 +233,7 @@ crew.get('/name/:crew', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM crew WHERE name REGEXP ?;", crewName)
+	poolQuery("SELECT * FROM crew WHERE name REGEXP ?;", formatExactRegex(crewName))
 	.then( results => {
 		res.json(results);
 	})
@@ -276,7 +283,7 @@ treasure.get('/name/:treasure', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM treasure WHERE name REGEXP ?;", treasureName)
+	poolQuery("SELECT * FROM treasure WHERE name REGEXP ?;", formatExactRegex(treasureName))
 	.then( results => {
 		res.json(results);
 	})
@@ -355,6 +362,10 @@ keyword.get('/', (req, res) => {
 	});
 });
 
+keyword.get('/id/:keyword', (req, res) => {
+	res.json([]);
+});
+
 keyword.get('/name/:keyword', (req, res) => {
 	const keywordName = req.params.keyword.substring(0, 30).toUpperCase();
 
@@ -364,7 +375,7 @@ keyword.get('/name/:keyword', (req, res) => {
 
 	const regex = `${keywordName.replace(/[^A-Z]/g, '.*')}`;
 
-	poolQuery("SELECT * FROM keyword WHERE shortname REGEXP ?;", regex)
+	poolQuery("SELECT * FROM keyword WHERE shortname REGEXP ?;", formatExactRegex(keywordName))
 	.then( results => {
 		res.json(results);
 	})
@@ -372,10 +383,6 @@ keyword.get('/name/:keyword', (req, res) => {
 		console.trace(err);
 		res.json({error: err});
 	});
-});
-
-keyword.get('/id/:keyword', (req, res) => {
-	res.json([]);
 });
 
 keyword.get('/category', (req, res) => {
