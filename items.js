@@ -141,21 +141,40 @@ module.exports = {
             data = this[type] = {
                 title: type.charAt(0).toUpperCase() + type.slice(1) + ' list'
             }
+            
+            function sortByName(a, b) {
+                return a.name < b.name ? -1 : 1;   
+            }
+
             switch (type) {
                 case 'faction':
-                    data.description = Object.values(dbdata.factions).sort().reduce((output, faction) => output + emojis[faction.nameimg] + " \u200b " + faction.name + "\n", "");
+                    data.description =
+                        Object.values(dbdata.factions)
+                        .sort(sortByName)
+                        .reduce((output, faction) => output + emojis[faction.nameimg] + " \u200b " + faction.name + "\n", "");
                     break;
                 case 'extension':
-                    data.description = Object.values(dbdata.extensions).reduce((output, extension) => output + emojis[extension.short] + " \u200b " + extension.name + " - " + extension.short + (extension.shortcommunity ? " - " + extension.shortcommunity : '') + (extension.shortwizkids ? " - " + extension.shortwizkids : '') + "\n", "");
+                    data.description =
+                        Object.values(dbdata.extensions)
+                        // .sort(sortByName)
+                        .reduce((output, extension) => output + emojis[extension.short] + " \u200b " + extension.name + " - " + extension.short + (extension.shortcommunity ? " - " + extension.shortcommunity : '') + (extension.shortwizkids ? " - " + extension.shortwizkids : '') + "\n", "");
                     break;
                 case 'rarity':
-                    data.description = Object.values(dbdata.rarities).reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name}\n`, "");
+                    data.description =
+                        Object.values(dbdata.rarities)
+                        .sort(sortByName)
+                        .reduce((output, rarity) => `${output}${emojis[rarity.color]} ${rarity.name}\n`, "");
                     break;
                 case 'keyword/category':
-                    data.description = Object.values(dbdata.kw_categories).reduce((output, kw_category) => `${output} ${kw_category.name}\n`, "");
+                    data.description = Object.values(dbdata.kw_categories)
+                        .sort(sortByName)
+                        .reduce((output, kw_category) => `${output} ${kw_category.name}\n`, "");
                     break;
                 case 'keyword/target':
-                    data.description = Object.values(dbdata.kw_targets).reduce((output, kw_target) => `${output} ${kw_target.name}\n`, "");
+                    data.description =
+                        Object.values(dbdata.kw_targets)
+                        .sort(sortByName)
+                        .reduce((output, kw_target) => `${output} ${kw_target.name}\n`, "");
                     break;
             }
         }
