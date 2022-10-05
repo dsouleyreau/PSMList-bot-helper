@@ -64,7 +64,7 @@ setInterval(function setTimeOffset() {
 	return setTimeOffset;
 }(), 2 * 3600 * 1000);
 
-const psmDataTypes = ['ship', 'fort', 'crew', 'treasure'];
+const psmDataTypes = ['ship', 'fort', 'crew', 'treasure', 'keyword'];
 
 // bot behavior
 bot.on("message", (message) => {
@@ -147,6 +147,9 @@ bot.on("message", (message) => {
 						`\`${prefix}crew id <id>\` or \`${prefix}crew name <name>\`\n` +
 						`Ex: \`${prefix}crew ca063\``
 					;
+					break;
+				case 'keyword':
+					helpMessage = 'Shows the effect of the keyword';
 					break;
 				case 'treasure':
 					helpMessage =
@@ -248,6 +251,7 @@ bot.on("message", (message) => {
 					apiRequest(`${config.apiURI}/fort/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 					apiRequest(`${config.apiURI}/crew/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 					apiRequest(`${config.apiURI}/treasure/${searchType === 'id' ? 'id' : 'name'}/${input}`),
+					apiRequest(`${config.apiURI}/keyword/${searchType === 'id' ? 'id' : 'name'}/${input}`),
 				])
 					.then( data => {
 						// create an associative array of data by item type
@@ -350,10 +354,11 @@ bot.on("message", (message) => {
 		case 'crew':
 		case 'fort':
 		case 'treasure':
+		case 'keyword':
 			let input = '', searchType = '';
 			// get search type and remove it from args for future processing
 			try {
-				searchType = sanitizer.value(args.shift(), 'str').toLowerCase();
+				searchType = command !== 'keyword' ? sanitizer.value(args.shift(), 'str').toLowerCase() : 'name';
 			} catch (e) {
 				console.log(`Error with command '${message.content}'`);
 			}

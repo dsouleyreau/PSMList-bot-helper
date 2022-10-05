@@ -78,6 +78,9 @@ api.use('/treasure', treasure);
 const event = express.Router();
 api.use('/event', event);
 
+const keyword = express.Router();
+api.use('/keyword', keyword);
+
 /*
  * /ship
  */
@@ -333,6 +336,45 @@ event.get('/name/:event', (req, res) => {
 		res.json({error: err});
 	});*/
 });
+
+/*
+ * /keyword
+ */
+
+keyword.get('/', (req, res) => {
+    poolQuery("SELECT * FROM keyword;")
+    .then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.trace(err);
+		res.json({error: err});
+	});
+});
+
+keyword.get('/name/:keyword', (req, res) => {
+	const keywordName = req.params.keyword.substring(0, 30).toUpperCase();
+
+	if ( keywordName.length === 0 || keywordName.length !== req.params.keyword.length) {
+		return res.json([]);
+	}
+
+	const regex = `${keywordName.replace(/[^A-Z]/g, '.*')}`;
+
+	poolQuery("SELECT * FROM keyword WHERE shortname REGEXP ?;", regex)
+	.then( results => {
+		res.json(results);
+	})
+	.catch( err => {
+		console.trace(err);
+		res.json({error: err});
+	});
+});
+
+keyword.get('/id/:keyword', (req, res) => {
+	res.json([])
+});
+
 
 /*
  * /faction

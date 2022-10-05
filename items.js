@@ -6,19 +6,29 @@ module.exports = (factions, extensions, rarities) => {
     return {
         // create embed depending on type and number
         buildItemsEmbed(type, items, input) {
-            const fields = [];
             let title = type.charAt(0).toUpperCase() + type.slice(1) + 's listed as: ' + input;
+            const fields = [];
+
             // pack results in columns of 8
             for ( let i = 0; i < items.length; i += 8 ) {
-                const output = items.slice(i, i + 8).reduce( (accu, item) => {
-                    const faction = factions[item.idfaction];
-                    const extensionObject = extensions[item.idextension];
-                    return accu +
-                        ' \u200b \u200b ' + '[' + extensionObject.short + item.numid + '](https://psmlist.com/public/' + (type !== 'fort' ? type : 'ship') + '/' + extensionObject.short + item.numid + ')' +
-                        (faction && faction.nameimg ? ' \u200b ' + emojis[faction.nameimg] : '') +
-                        ' \u200b\ ' + item.name +
-                        '\n';
-                }, '');
+                let output = '';
+
+                if (type !== 'keyword') {
+                    output = items.slice(i, i + 8).reduce( (accu, item) => {
+                        const faction = factions[item.idfaction];
+                        const extensionObject = extensions[item.idextension];
+                        return accu +
+                            ' \u200b \u200b ' + '[' + extensionObject.short + item.numid + '](https://psmlist.com/public/' + (type !== 'fort' ? type : 'ship') + '/' + extensionObject.short + item.numid + ')' +
+                            (faction && faction.nameimg ? ' \u200b ' + emojis[faction.nameimg] : '') +
+                            ' \u200b\ ' + item.name +
+                            '\n';
+                    }, '');
+                }
+                else {
+                    output = items.slice(i, i + 8).reduce( (accu, item) => 
+                        accu + ' \u200b \u200b ' + '[' + item.shortname + '](https://www.psmlist.com/public/keyword/detail?kw=' + item.shortname + ') \n'
+                    , '');
+                }
                 fields.push({ name: title, value: output, inline: true });
                 title = '\u200b'; // second, third... titles will be empty
             }
@@ -29,6 +39,28 @@ module.exports = (factions, extensions, rarities) => {
         },
         buildItemEmbed(type, data) {
             const embeds = [];
+
+            const itemEmbed = new Discord.MessageEmbed()
+                .attachFiles([`${__dirname}/bot_icon.png`])
+                .setAuthor(`PSM ${type} identity`, 'attachment://bot_icon.png', 'https://psmlist.com/')
+                // .setTimestamp()
+                .setFooter('Provided by Broken Arms Team');
+
+            if (type === 'keyword') {
+                const item = data[0];
+                return [
+                    itemEmbed
+                    .setTitle(item.shortname)
+                    .setURL(`https://www.psmlist.com/public/keyword/detail?kw=${item.shortname}`)
+                    .addFields([
+                        {name: 'Cost', value: item.cost, inline: true},
+                        {name: 'Category', value: item.idkeywordtype, inline: true},
+                        {name: 'Target', value: item.idkeywordtarget, inline: true},
+                        {name: 'Effect', value: item.effect}
+                    ])
+                ]
+            }
+
             for (let item of data) {
                 const faction = factions[item.idfaction];
                 const extensionObject = extensions[item.idextension];
@@ -39,15 +71,11 @@ module.exports = (factions, extensions, rarities) => {
                     type = 'ship';
                 }
 
-                const itemEmbed = new Discord.MessageEmbed()
+                itemEmbed
                     .setColor(rarities[item.idrarity].color)
-                    .attachFiles([`${__dirname}/bot_icon.png`])
-                    .setAuthor(`PSM ${type} identity`, 'attachment://bot_icon.png', 'https://psmlist.com/')
                     .setTitle(`${item.name} (${itemID})`)
                     .setURL(`https://psmlist.com/public/${type}/${itemID}`)
                     .setImage(`https://psmlist.com/public/img/gameicons/full/${extensionObject.short}/${item.numid}.jpg`)
-                    // .setTimestamp()
-                    .setFooter('Provided by Broken Arms Team');
 
                 const fields = [];
 
