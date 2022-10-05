@@ -56,7 +56,7 @@ module.exports = (factions, extensions, rarities) => {
                         fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: '**' + item.points + '** points' + ' \u200b \u200b ' +
+                                value: '**' + item.points + ' points**' + ' \u200b \u200b ' +
                                     emojis.masts + ' ' + item.masts + ' \u200b \u200b ' +
                                     emojis.cargo + ' ' + item.cargo + ' \u200b \u200b ' +
                                     emojis.speed + ' ' + item.basemove + ' \u200b \u200b ' +
@@ -70,7 +70,7 @@ module.exports = (factions, extensions, rarities) => {
                         fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: '**' + item.points + '** points',
+                                value: '**' + item.points + ' points**',
                             },
                             { name: 'Ability', value: item.defaultaptitude || '-', inline: true },
                             { name: 'Flavor Text', value: item.defaultlore || '-', inline: true },
@@ -80,7 +80,7 @@ module.exports = (factions, extensions, rarities) => {
                         fields.push(
                             {
                                 name: emojis[extensionObject.short] + ' \u200b ' + extensionObject.name + ' \u200b - \u200b ' + extensionObject.short + ' \u200b \u200b \u200b ' + emojis[faction.nameimg] + ' \u200b ' + faction.name,
-                                value: '**' + item.points + '** points \u200b \u200b ' +
+                                value: '**' + item.points + ' points** \u200b \u200b ' +
                                     emojis.cannon + '\ ' + item.cannons.match(/\w{2}/g).reduce((cannons, cannon) => cannons + ' \u200b ' + emojis[cannon], ''),
                             },
                             {name: 'Ability', value: item.defaultaptitude || '-', inline: true},
