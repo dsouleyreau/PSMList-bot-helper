@@ -185,7 +185,7 @@ bot.on("message", (message) => {
 			}
 
 			if (helpTitle === '') {
-				helpTitle = helpCommand;
+				helpTitle = helpCommand || 'help';
 			}
 
 			message.channel.send(
@@ -357,7 +357,7 @@ bot.on("message", (message) => {
 						return message.channel.send('Failed to process research. Please refine your inputs.');
 				}
 			}
-			
+
 			switch (searchType) {
 				case 'id':
 					if (args.length > 1) {

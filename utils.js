@@ -1,5 +1,6 @@
 
-const http  = require('http'),
+const Discord = require('discord.js'),
+	  http  = require('http'),
 	  https = require('https'),
 	  { emojis, prefix, apiURI } = require('./config.js');
 
@@ -56,18 +57,20 @@ function bulkApiRequest(...optionsList){
 
 function allHelp(hasManageMessagesPermission) {
 	return 'Available commands:\n' +
-		['ping', 'search', 'ship', 'fort', 'crew', 'treasure', 'keyword', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
-			.reduce((accu, command) => accu + ' \u200b \u200b * `' + prefix + command + '`\n', '')
-		+ (hasManageMessagesPermission ? ' \u200b \u200b - `' + prefix + 'purge`\n' : '') + '\n' +
-		`Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.\n` +
-		'For further help, please check the [documentation](https://psmlist.com/public/blog/documentation_psmlisthelper) on psmlist.com.';
-}
+		`${
+			['ping', 'search', 'ship', 'fort', 'crew', 'treasure', 'keyword', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
+				.reduce((accu, command) => `${accu} \u200b \u200b * \`${prefix}${command}\`\n`, '')
+			+ (hasManageMessagesPermission ? ` \u200b \u200b - \`${prefix}purge\`\n` : '')
+		}
+		Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.
+		Type \`${prefix} <command> name "<text"\` to do an exact research.
 
-const Discord = require('discord.js');
+		For further help, please check the [documentation](https://psmlist.com/public/blog/documentation_psmlisthelper) on psmlist.com.`;
+}
 
 async function loadData(type) {
 	const exports = {};
-	
+
 	const data = await apiRequest(`${apiURI}/${type}`); // expected to throw error and quit process if api is unreachable
 	
 	if (!data) {
