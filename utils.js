@@ -55,12 +55,12 @@ function bulkApiRequest(...optionsList){
 	return Promise.all(promises).then((values) => values.flat() );
 }
 
-function allHelp(hasManageMessagesPermission) {
-	return 'Available commands:\n' +
-		`${
+function allHelp() {
+	return `Available commands:
+	
+		${
 			['ping', 'search', 'ship', 'fort', 'crew', 'treasure', 'keyword', 'factions', 'extensions', 'rarities', 'udc', 'simcost']
 				.reduce((accu, command) => `${accu} \u200b \u200b * \`${prefix}${command}\`\n`, '')
-			+ (hasManageMessagesPermission ? ` \u200b \u200b - \`${prefix}purge\`\n` : '')
 		}
 		Type \`${prefix}help <command>\` or \`${prefix}<command> help\` to get detailed information.
 		Type \`${prefix} <command> name "<text"\` to do an exact research.

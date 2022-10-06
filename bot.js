@@ -86,9 +86,9 @@ bot.on("message", (message) => {
 	const command = sanitizer.value(args[1] && args[1].toLowerCase() === 'help' ? args.splice(1, 1)[0].toLowerCase() : args.shift().toLowerCase(), 'str');
 
 	// defines if it is possible to manage messages (help and purge commands)
-	const clientHasManageMessagesPermission = message.member.hasPermission('MANAGE_MESSAGES') || message.member.hasPermission('ADMINISTRATOR');
-	const botHasManageMessagesPermission = message.guild.me.hasPermission('MANAGE_MESSAGES') || message.guild.me.hasPermission('ADMINISTRATOR');
-	const hasManageMessagesPermission = clientHasManageMessagesPermission || botHasManageMessagesPermission;
+	// const clientHasManageMessagesPermission = message.member.hasPermission('MANAGE_MESSAGES') || message.member.hasPermission('ADMINISTRATOR');
+	// const botHasManageMessagesPermission = message.guild.me.hasPermission('MANAGE_MESSAGES') || message.guild.me.hasPermission('ADMINISTRATOR');
+	// const hasManageMessagesPermission = clientHasManageMessagesPermission || botHasManageMessagesPermission;
 
 	switch (command) {
 
@@ -166,16 +166,8 @@ bot.on("message", (message) => {
 				case 'ping':
 					helpMessage = 'Test your ping for fun!';
 					break;
-				case 'purge':
-					if (hasManageMessagesPermission) {
-						helpMessage = 'Purge previous messages. Give it the number of messages to delete.';
-					}
-					else {
-						helpMessage = allHelp(hasManageMessagesPermission);
-					}
-					break;
 				default:
-					helpMessage = allHelp(hasManageMessagesPermission);
+					helpMessage = allHelp();
 			}
 			if (['search', 'ship', 'fort', 'crew', 'treasure'].includes(helpCommand)) {
 				helpMessage += '\n\nID research has a permissive syntax:\n' +
@@ -516,35 +508,6 @@ bot.on("message", (message) => {
 					outputSimulatedCost(command, simcost_masts, simcost_cargo, simcost_speed, simcost_cannons + simcost_cannons_unit)
 				);
 			}
-			break;
-
-		case 'purge':
-			// check permissions
-			if (!hasManageMessagesPermission) {
-				return message.channel.send('You don\'t have permissions for that!');
-			}
-
-			let number = 0;
-
-			try {
-				number = sanitizer.value(Number.parseInt(args[0]), 'int');
-			} catch (e) {
-				return message.channel.send('Indicate a valid number, between 2 and 10.');
-			}
-
-			// check value type
-			if (!Number.isFinite(number) || number < 2 || number > 10) {
-				return message.channel.send('Indicate a valid number, between 2 and 10.');
-			}
-
-			// delete the command itself
-			message.delete();
-
-			message.channel.bulkDelete(number, true)
-				.catch(err => {
-					console.trace(err);
-					message.channel.send('Failed to delete old messages!');
-				});
 			break;
 
 		default:
