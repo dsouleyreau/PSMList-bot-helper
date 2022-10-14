@@ -21,7 +21,8 @@ const Discord = require('discord.js'),
 	}),
 	sanitizer = require('sanitize')(),
 	{ apiRequest, allHelp, outputSimulatedCost } = require('./utils.js'),
-	{ buildItemEmbed, buildItemsEmbed, createStaticEmbeds } = require('./items.js');
+	{ buildItemEmbed, buildItemsEmbed, createStaticEmbeds } = require('./items.js'),
+	dbdata = require('./dbdata.js');
 
 const factionsEmbed = () => createStaticEmbeds('faction');
 const extensionsEmbed = () => createStaticEmbeds('extension');
@@ -250,8 +251,7 @@ bot.on("message", (message) => {
 							// check if there would be one item to show or two corresponding to crew from the same card (with same extension and numid)
 							const isSingleEmbed =
 								// more than one type or more than two items means multi embed
-								types > 1
-									|| length > 2 ? false :
+								types > 1 || length > 2 ? false :
 									// one item or two which match type specific conditions
 									(
 										length === 1
@@ -270,8 +270,8 @@ bot.on("message", (message) => {
 											(
 												dataByType['ship'] &&
 												(
-													extensions[dataByType['ship'][0].idextension].short + 'U' === extensions[dataByType['ship'][1].idextension].short
-													|| extensions[dataByType['ship'][0].idextension].short === extensions[dataByType['ship'][1].idextension].short + 'U'
+													dbdata.extensions[dataByType['ship'][0].idextension].short + 'U' === dbdata.extensions[dataByType['ship'][1].idextension].short
+													|| dbdata.extensions[dataByType['ship'][0].idextension].short === dbdata.extensions[dataByType['ship'][1].idextension].short + 'U'
 												)
 											)
 										)
@@ -280,7 +280,7 @@ bot.on("message", (message) => {
 							// keep only the ship not from Unlimited extension
 							if (isSingleEmbed && dataByType['ship'] && dataByType['ship'].length === 2) {
 								dataByType['ship'] = [
-									!(extensions[dataByType['ship'][0].idextension].short.endsWith('U')) ?
+									!(dbdata.extensions[dataByType['ship'][0].idextension].short.endsWith('U')) ?
 										dataByType['ship'][0] : dataByType['ship'][1]
 								]
 							}
