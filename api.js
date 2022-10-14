@@ -85,8 +85,11 @@ const keyword = express.Router();
 api.use('/keyword', keyword);
 
 function formatExactRegex(regex) {
-	if (regex.startsWith('"') && regex.endsWith('"')) {
-		regex = `^${regex.slice(1, -1)}$`;
+	if (!(regex.startsWith('"') && regex.endsWith('"'))) {
+		regex = `%${regex}%`;
+	}
+	else {
+		regex = `${regex.slice(1, -1)}`;
 	}
 	return regex;
 }
@@ -133,7 +136,7 @@ ship.get('/name/:ship', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE idtype != 2 AND name REGEXP ?;", formatExactRegex(shipName))
+	poolQuery("SELECT * FROM ship WHERE idtype != 2 AND name LIKE ?;", formatExactRegex(shipName))
 	.then( results => {
 		res.json(results);
 	})
@@ -183,7 +186,7 @@ fort.get('/name/:fort', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM ship WHERE idtype = 2 AND name REGEXP ?;", formatExactRegex(fortName))
+	poolQuery("SELECT * FROM ship WHERE idtype = 2 AND name LIKE ?;", formatExactRegex(fortName))
 	.then( results => {
 		res.json(results);
 	})
@@ -233,7 +236,7 @@ crew.get('/name/:crew', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM crew WHERE name REGEXP ?;", formatExactRegex(crewName))
+	poolQuery("SELECT * FROM crew WHERE name LIKE ?;", formatExactRegex(crewName))
 	.then( results => {
 		res.json(results);
 	})
@@ -283,7 +286,7 @@ treasure.get('/name/:treasure', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM treasure WHERE name REGEXP ?;", formatExactRegex(treasureName))
+	poolQuery("SELECT * FROM treasure WHERE name LIKE ?;", formatExactRegex(treasureName))
 	.then( results => {
 		res.json(results);
 	})
@@ -337,7 +340,7 @@ event.get('/name/:event', (req, res) => {
 		return res.json([]);
 	}
 
-	poolQuery("SELECT * FROM event WHERE name REGEXP ?;", eventName)
+	poolQuery("SELECT * FROM event WHERE name LIKE ?;", eventName)
 	.then( results => {
 		res.json(results);
 	})
@@ -367,15 +370,13 @@ keyword.get('/id/:keyword', (req, res) => {
 });
 
 keyword.get('/name/:keyword', (req, res) => {
-	let keywordName = req.params.keyword.substring(0, 30).toUpperCase();
+	const keywordName = req.params.keyword.substring(0, 30).toUpperCase();
 
 	if ( keywordName.length === 0 || keywordName.length !== req.params.keyword.length) {
 		return res.json([]);
 	}
-
-	keywordName = keywordName.replace(/\+/, '\\+').replace(' ', '.*');
 	
-	poolQuery("SELECT * FROM keyword WHERE shortname REGEXP ?;", formatExactRegex(keywordName))
+	poolQuery("SELECT * FROM keyword WHERE shortname LIKE ?;", formatExactRegex(keywordName))
 	.then( results => {
 		res.json(results);
 	})
